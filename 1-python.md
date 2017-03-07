@@ -903,7 +903,7 @@ conn.commit()
 ### 练习
 1. 改写记录学生成绩的类，添加合适的成员方法，将学生信息保存到数据库中，在计算平均分时从数据库读取学生成绩并计算。
 > 提示：你可能需要再学习学习 SQLite 中的函数，以理解下面这行代码片段：
-> `socre_sum = cur.execute(SELECT sum(score) FROM students).fetchone()[0]`
+> `socre_sum = cur.execute("SELECT sum(score) FROM students").fetchone()[0]`
 
 2. 搜索“如何用 Python 获取网页内容”，完成一个简单的脚本，其作用是显示电脑当前的公网 IP 地址。
 > 提示：一些网站提供了这种功能，比如在百度搜索“IP”。但还有的网站的返回值更加简单一些，比如 ip.cn 这个网站。最后，为了更有效率地处理字符串，你可能需要学习一下正则表达式——别太贪心，任何“15分钟速成正则表达式”都是不可能的，而且千万注意是得学 Python 中的正则表达式哦！
