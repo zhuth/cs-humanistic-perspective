@@ -2,9 +2,9 @@
 =============
 Computer Science in a Humanistic Perspective: A Brief Introduction
 
-## 数据结构与算法分析
+# 数据结构与算法分析
 
-### 引言
+## 第一讲 算法分析基础；链表
 
 休息一周，我们来继续“作为人类语言的 Python 导论”未完成的部分。在“导论”引导下学习了 Python 语言之后，应该可以完成诸如给出若干不同功能的片段，然后把它们组装成一个脚本用于自己的目的这样的工作，而这实际上涵盖了大部分我们日常中可能用到 Python 的情形。
 
@@ -78,7 +78,7 @@ $O(1)$ “<” $O(\log n)$ “<” $O(\log^k n)$ “<” $O(n)$ “<” $O(n^k)$
 ```python
 s = 0
 for _ in range(0, 100):
-	s += _
+    s += _
 ```
 
 `for` 循环内部给 `x` 自加的步骤执行了 `100` 次（`_` 取 `0` 到 `99`），因此我们可以说上面这段代码的时间复杂度是 $O(100) = O(1)$ 。
@@ -89,7 +89,7 @@ for _ in range(0, 100):
 ```python
 s = 0
 for _ in range(0, n):
-	s += _
+    s += _
 ```
 
 上述代码，自加的步骤执行了 $n$ 次，$n$ 是我们这里的“问题的规模”。所以上述代码的时间复杂度是 $O(n)$。
@@ -99,7 +99,7 @@ for _ in range(0, n):
 ```python
 s = 0
 for _ in range(0, 2*n):
-	s += _
+    s += _
 ```
 
 它的时间复杂度仍然是 $O(n)$。
@@ -127,9 +127,9 @@ for y in range(0, maxy + 1):
 
 ```python
 for x in range(0, n):
-	for y in range(0, m):
-		print(x+y)
-	print(sum(mat[x,:]))
+    for y in range(0, m):
+        print(x+y)
+    print(sum(mat[x,:]))
 ```
 
 在这里，我们假设 `mat` 是一个 $n \times w$ 的矩阵而 $w$ 总是大于 $m$，并假设 `sum` 函数的时间复杂度为相对其规模是线性的（即，如果规模是 $n$，它就是 $O(n)$；此 $n$ 非彼 `n`），因此就是 $O(w)$ 。而根据 $w + m = O(max(w, m))$ ，$for x$ 的循环体内部时间复杂度就是 $O(w)$ 而不是 $O(m)$，因此整个片段的时间复杂度就是 $O(nw)$ 而不是 $O(nm)$。
@@ -141,8 +141,8 @@ for x in range(0, n):
 
 ```python
 def fib(n):
-	if n == 1 or n == 2: return 1
-	return fib(n - 1) + fib(n - 2)
+    if n == 1 or n == 2: return 1
+    return fib(n - 1) + fib(n - 2)
 ```
 
 如果用 T(n) 表示取某个值 n 时上述代码所需进行的基本操作数量，我们会有：
@@ -151,7 +151,7 @@ $$T(n) = T(n - 1) + T(n - 2) + c$$
 
 显然 $T(n) > Fib(n) $（Fib 表示“数学上的”斐波那契数列）
 我们知道，斐波那契数列的通项公式是：（图来自 Wikipedia）
-$$Fib(n) = \frac{\sqrt{5}}{5}\[\left(\frac{1+\sqrt{5}}{2}\right)^n-\left(\frac{1-\sqrt{5}}{2}\right)^n\]$$
+$$Fib(n) = \frac{\sqrt{5}}{5}\left[\left(\frac{1+\sqrt{5}}{2}\right)^n-\left(\frac{1-\sqrt{5}}{2}\right)^n\right]$$
 
 因此 $Fib(n) = O(cn)$，$c = (1 + \sqrt{5}) / 2 < 2$。
 
@@ -217,14 +217,14 @@ class LinkNode:
         while n is not None:
             act(n.value)
             n = n.next
-			
+            
 if __name__ == '__main__':
-	head = LinkNode(1)
-	tail = head
-	for i in range(2, 10):
-		tail = tail.append(i)
-		
-	LinkNode.iterate(head, print)
+    head = LinkNode(1)
+    tail = head
+    for i in range(2, 10):
+        tail = tail.append(i)
+        
+    LinkNode.iterate(head, print)
 ```
 
 屏幕上将输出：
@@ -251,6 +251,7 @@ LinkNode.iterate(head, lambda x: print('Exists') if x == n else 0)
 
 而双向链表由于多了一个 `prev` 字段，就保留了前一个数据的位置信息（姑且这么说吧），所以不仅可以正过去，还可以倒过来。实现 `DoubleLinkNode` 的任务当然就交给诸君留作练习了。一并留作思考的是：上述寻找某数 n 的代码，其时间复杂度是多少？（将访问一个链表节点视为一个基本操作）
 
+## 第二讲 栈与队列；树与图初步
 ### 栈与队列
 
 栈（Stack）与队列（Queue）是两种特殊的链表，它只允许从一端（分别是“头”和“尾”）进行插入操作，同时也只允许从一端读取（都是“头”）。容易想见，它们都可以用单向链表直接实现。我们就来实现一下。
@@ -276,18 +277,18 @@ class Stack:
 class Queue:
     def __init__(self):
         self.head = None
-		self.tail = None
+        self.tail = None
         
     def put(self, val):
         if self.empty():
-			self.head = LinkNode(val)
-			self.tail = self.head
-		else:
-			self.tail = self.tail.append(val)
+            self.head = LinkNode(val)
+            self.tail = self.head
+        else:
+            self.tail = self.tail.append(val)
     
     def pop(self):
         v = self.head.value
-		self.head = self.head.next
+        self.head = self.head.next
         return v
     
     def empty(self):
@@ -298,14 +299,14 @@ class Queue:
 
 ```python        
 if __name__ == '__main__':
-	print('Queue:')
+    print('Queue:')
     q = Queue()
     for i in range(1, 10):
         q.put(i)
     while not q.empty():
         print(q.pop())
     
-	print('Stack:')
+    print('Stack:')
     s = Stack()
     for i in range(1, 10):
         s.put(i)
@@ -359,7 +360,7 @@ class Queue:
         return len(self.l) == 0
 ```
 
-#### 练习
+**练习**
 
 模仿上例，用 `list` 实现栈。
 
@@ -420,17 +421,17 @@ class TreeNode:
 
 好了，现在让我们来做一个练习。
 
-#### 练习
+#### DFS 与 BFS
 
 你是 Robert Frost 的传人，你坚信一定要走人迹罕至的一条路。现在你进入了森林中，森林它一丛丛。每一个岔口都只分成两条路，你可以看到上面都有一个记号，表示这条路有多少人走过（每条路都不会超过 30000 人）。请补完下面的代码，以从森林的入口（root）走到它的一个出口（没有岔路），一路上记下选择的分岔路上走过的总人数。
 
 ```python
 class BinTreeNode:
-	def __init__(self, val):
-		self.value = val
-		self.child1 = None
-		self.child2 = None
-		
+    def __init__(self, val):
+        self.value = val
+        self.child1 = None
+        self.child2 = None
+        
     @staticmethod
     def traverseLikeRobertFrost(root):
         n = root
@@ -488,7 +489,7 @@ def BFS(start):
     q = [{'node': start, 'total': start.value}]
     idx = 0
     ans = float('inf')
-    while len(q) > 0:
+    while len(q) > idx:
         n = q[idx]['node']
         t = q[idx]['total']
         idx += 1
@@ -499,7 +500,7 @@ def BFS(start):
 
 我们发现，由于不需要递归调用，BFS 可以自己独立地返回答案。
 
-#### 练习
+**练习**
 
 1. 参照 BFS 函数，用栈改写 DFS 函数。
 2. BFS 和 DFS 的时间复杂度相对于树的总节点数 N 是多少？如果是二叉树，那么相对于二叉树的总层数 M 而言又是多少？
@@ -529,9 +530,9 @@ def BFS(start):
 
 ```python
 class Node:
-	def __init__(self, val):
-		self.value = val
-		self.adjacent = []
+    def __init__(self, val):
+        self.value = val
+        self.adjacent = []
 ```
 
 直观地来说，如果 `adjacent` 字段里存储的每个元素又都是一个 `Node`，这样我们只是存储了图中节点之间的邻接关系——也就是两个节点之间边的方向，而并没有存储关于这条边本身的信息，譬如，长度。所幸，Python 强大而原生的 `dict` 类型弥补了这一点。
@@ -564,3 +565,334 @@ a - b -- d -- f -- h
   \ c -- e -- g -- i
 ```
 搜索会生成出一棵树，而这其中的每个节点又对应于图中的节点，尽管有些节点被对应了多次。但如果没有那个限制，我们可以想象，这棵树中就会有无限多个节点了。
+
+## 第三讲 散列；排序
+
+### 散列
+
+我们至此还没有专门讨论过 Python 中 `dict`（字典）。一个字典对象可以用标注的构造函数来初始化：
+
+```python
+d = dict()
+```
+
+也可以像这样，用 `{}` 来初始化：
+
+```python
+d = {}
+```
+
+或者这样，在初始化的时候给定一些**键值对**：
+
+```python
+d = {
+    'A': 4.0,
+    'A-': 3.7,
+    'B+': 3.3,
+    'B': 3.0,
+    'B-': 2.7,
+    'C+': 2.3,
+    'C': 2.0,
+    'C-': 1.7,
+    'D': 1.0,
+    'F': 0
+}
+```
+
+这样我们就建立了一个等第与绩点的换算表。对于字典的访问是这样的：
+
+```
+>>> d['A']
+4.0
+```
+
+像 `list` 一样，用 `[]` 来表明字典中的“键”。在 Python 中，我们用这样的方式来判定某个字典中有没有指定的“键”：
+
+```python
+'D-' in d
+```
+
+而用给 `list` 中元素赋值一样的方法来给字典的某个键赋值。字典的好处在于，它可以以常数时间（$O(1)$）来访问每一个元素，而不必像 `list` 那样，只有挨个寻找才能找到合乎条件的东西。比如说，上面这个换算表也可以用下面这个 `list` 来实现：
+
+```python
+l = [('A', 4.0), ('A-', 3.7), ('B+', 3.3), ('B', 3.0), ('B-', 2.7), ('C+', 2.3), ('C', 2.0), ('C-', 1.7), ('D', 1.0), ('F', 0)]
+
+def getScore(grade):
+    for g, s in l:
+        if g == grade: return s
+    return None
+
+```
+
+这样的话，完成一个匹配就需要 $O(N)$ 的时间，其中 $N$ 为 `l` 的长度。在这里，我们这个长度是不会变的；但如果它会变，运行的程序就会受到它的影响。不得不说，这是一种非常慢而傻的方法。
+
+那么大家就要问了，为什么完成同样的操作，字典就要比列表快呢？这就是散列的作用了。
+
+散列（Hash）是一个函数，将指定的对象转换成一个（不唯一的）数。这个数，我们音译为哈希值，相应地这个函数也可以称为“哈希函数”。Python 中每个类都会有一个哈希函数，它可以是系统（`object`）默认的，也可以是类中显式声明的 `__hash__` 成员函数。比如：
+
+```python
+import time
+class A:
+    def __init__(self):
+        self.hashvalue = int(time.time() * 1000)
+        
+    def __hash__(self):
+        return self.hashvalue
+```
+
+在这里，我们用对象创建时的时间戳（即，距离 1970 年 1 月 1 日世界协调时 0 时整的毫秒数）来作为这个对象的哈希值。对象哈希值可以用下面的方法得到：
+
+```python
+x = A()
+hash(x)
+```
+
+当然，这里的 `x` 也可以是任何一个 Python 的对象。我们在这里秩序知道，哈希值是讲对象用一个整数来代表的函数。当然它不可能是唯一的。事实上，我们也不需要它是唯一的。
+
+散列的思想，便是将某个对象的哈希值对某个数取余，然后将它存储到某个列表中（通常称之为“桶”）：
+
+```python
+class MyBuckets:
+    DEFAULT_BUCKETS = 32
+    
+    def __init__(self):
+        self.buckets = [[]] * MyBuckets.DEFAULT_BUCKETS
+    
+    def getBucketIndex(self, key):
+        return hash(key) % len(self.buckets)
+    
+    def put(self, key):
+        self.buckets[self.getBucketsIndex(key)].append(key)
+        
+    def contains(self, key):
+        l = self.buckets[self.getBucketsIndex(key)]
+        return key in l
+```
+
+上面，我们实现了一个叫做 `MyBuckets` 的类。它像一个集合一样——但是允许多个重复的 `key`，可以用 `put` 来添加元素，也可以用 `contains` 来判断是否含有某个键 `key`。对于哈希值取余相同的键，它用一个列表来保存所有的键。
+
+现在我们来分析这两个操作的时间复杂度。显然，添加到桶中的操作时间复杂度是常数级别的。而判定某个元素是否在桶中，可以看到，在最坏情况下，所有的键都不幸落入同一个桶中，这样的时间复杂度便是 $O(N)$，$N$ 为键的总数。这时，一定是我们选取的桶的数量不合适，或者哈希函数本身选取不当。
+
+但是我们的运气不可能一直那么差。在平均的情况下，哈希函数的值取余数应该可以看做是平均分布的，因此每个桶里平均有 $N$ 除以桶的数量 $M$ 个元素，这时查询某个键是否存在于桶中，其时间复杂度就是 $O(N/M)$ 。但没有用，$M$ 在上面的代码中是不会变的。但如果我们事先知道了 $N$ 大概会有多少，并取 $M$ 为 $N/c$ 其中常数 $c$ 称为装填因子，也就是桶中元素与桶的数量之比。这样，我们判定桶中有没有某个元素的时间复杂度就骤然变成了 $1/c$，也就是一个常数了！
+
+可是，我们怎么才能估计出 $N$ 的规模呢？难道，字典中的键不是一个个添加进去的吗？这里便涉及到所谓的“再散列”。我们可以在实际的装填因子大于某个数值时将桶的数量扩大一倍，同时改变对待哈希值的方式（也就是更改取余的那个数）。这样，可以保证装填因子始终小于这个设定值，从而判断桶中有没有某个元素的时间复杂度可以预期保持为一个常数。不过，在我们这种实现方式中，再散列过程本身所花的时间可是不小，足足 $O(N)$ 呢！
+
+**练习**
+
+改写 `MyBuckets`，使之可以随时进行再散列。不考虑元素删除导致桶的数量减少，也不考虑键有重复的情形。
+
+```python
+class MyBuckets:
+    DEFAULT_BUCKETS = 32
+    COEF_LIMIT = 0.7
+    
+    def __init__(self):
+        self.buckets = [[]] * MyBuckets.DEFAULT_BUCKETS
+        self.bucketsCount = len(self.buckets)
+        self.size = 0
+    
+    def rehash(self):
+        self.buckets += [[]] * self.bucketsCount
+        self.bucketsCount *= 2
+        # TODO: 在此填入你的代码。
+        # 提示1：删除列表中的元素，可以使用列表的 .remove 方法。
+        # 提示2：如果循环在遍历某个 list，这时候不能用 .remove 来改变它，但可以先将这些要删除的值保留下来，然后再删除。
+    
+    def getBucketIndex(self, key):
+        return hash(key) % self.bucketsCount
+    
+    def put(self, key):
+        self.buckets[self.getBucketsIndex(key)].append(key)
+        self.size += 1
+        if float(self.size) / self.bucketsCount > MyBuckets.COEF_LIMIT:
+            self.rehash()
+        
+    def contains(self, key):
+        l = self.buckets[self.getBucketsIndex(key)]
+        return key in l
+```
+
+这样一来，我们就理解了：只要把值和键一起存入桶中，我们就实现了一个字典，而且可以保证预期是常数时间里（或者说，差不多是常数时间里）可以搞定的了。可是再散列的问题还是没有得到很好的解决。有办法让它也快一些吗？
+
+### 树（2）
+
+上次我们提到了二叉树，不过当时我们称它的两个子节点为 `child1` 和 `child2`，这实在有点委屈它们，因为它们本来是有名字的，分别叫左节点和右节点，而以左右节点为根节点的树称为左子树和右子树。区分左右是因为这种顺序对我们来说完全可以是有用的。我们现在来设想这样一个二叉树：它的左节点的值总是小于自己的值，而右节点的值则总是大于自己。这样的二叉树叫做**二叉搜索树**。
+
+![Bin Search Tree](https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Binary_search_tree.svg/225px-Binary_search_tree.svg.png)
+（图：Wikipedia）
+
+我们这就来实现一下看看。
+
+```python
+#!/usr/local/bin/python3
+import sys
+
+class BSTNode:
+    def __init__(self, val):
+        self.value = val
+        self.left = None
+        self.right = None
+        
+    def find(self, x):
+        if x == self.value: return self
+        elif x < self.value: return self.left.find(x) if self.left else None
+        else: return self.right.find(x) if self.right else None
+        
+    def put(self, x):
+        if x == self.value: return
+        elif x < self.value: 
+            if self.left:
+                self.left.put(x)
+            else:
+                self.left = BSTNode(x)
+        else:
+            if self.right:
+                self.right.put(x)
+            else:
+                self.right = BSTNode(x)
+                
+    def BFS(self):
+        q = [{'node': self, 'level': 1}]
+        idx = 0
+        lLevel = 0
+        while len(q) > idx:
+            n = q[idx]['node']
+            level = q[idx]['level']
+            idx += 1
+
+            if lLevel < level:
+                sys.stdout.write('\nLevel %d:' % level)
+                lLevel = level
+            
+            sys.stdout.write(' %.1f' % n.value if n else ' -')
+            if n is None: continue
+                
+            q += [{'node': _, 'level': level + 1} for _ in [n.left, n.right]]
+        
+
+if __name__ == '__main__':
+    import random
+    
+    bst = BSTNode(0.5)
+    for _ in [0.8, 0.7, 0.1, 0.2, 0.5, 0.3, 1.0, 0]:
+        print('Insert:', _)
+        bst.put(_)
+        
+    bst.BFS()
+```
+
+程序输出：
+
+```
+Insert: 0.8
+Insert: 0.7
+Insert: 0.1
+Insert: 0.2
+Insert: 0.5
+Insert: 0.3
+Insert: 1.0
+Insert: 0
+
+Level 1: 0.5
+Level 2: 0.1 0.8
+Level 3: 0.0 0.2 0.7 1.0
+Level 4: - - - 0.3 - - - -
+Level 5: - -
+```
+
+换句话说，这时候的树是这个样子的：
+
+```
+                    0.5
+        0.1                    0.8
+    0.0        0.2            0.7        1.0
+                0.3
+```
+
+可以想见，这样一个插入和查找的操作其实都是深搜，它在最坏情况下的时间复杂度是 $O(N)$ ——数按照次序插入，这时，这个二叉树退化成一个单向链表；而在最好的情况下，则是 $O(\log N)$，也就是满二叉树的树高。容易想见，用二叉搜索树代替列表，可以改善散列实现 `MyBucket` 进行再散列的时间：只要规定（比如）左节点中哈希值的二进制表示中某一位是1，右节点的同一位是0，等等，就能够把再散列时的桶中元素的拆分操作变成左右子树的整体移动。
+
+同样，考察到上面这个列表中，根节点的选择非常重要——如果我们第一个插入的元素是 0，那么显然就会平白无故多了一个层高出来。因此，人们发明了诸如 AVL 树（平衡二叉树）、B+ 树（不是二叉树）等方式，提高搜索效率并具有比较好的存储效率，等等。其主要思想也是运用树的特点进行一些节点的移动，这里就不一一介绍了。
+
+#### 最小堆
+
+在讲树的时候我们提到了一句平衡二叉树。在这里我们不打算展开讲它的实现，而是提到了它的主要思想：如果插入一个节点之后二叉树不再平衡——不再尽可能地“满”（有大量节点只有一个子节点），那么就让一些子节点和父节点位置交换。
+
+同样的思路，可以设想，我们也能够维持一个尽可能满的二叉树，它的父节点值大于它的所有左右子树里的节点。就像这样：
+
+![Min Heap](https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Min-heap.png/360px-Min-heap.png)
+
+把一个节点插入到最后一个节点位置上，然后去看它是否比它的父节点小，是的话就交换位置并对父节点递归进行相同的操作，否则就停止。这样的话，就能够保证根节点一定是整棵树里最小的。这样一个二叉树我们称之为最小二叉堆（Heap）。相应地，也有最大堆，不过其实也是一回事了。
+
+Python 为我们实现了最小堆操作，只需引用 `heapq` 即可。我们摘引一段 `heapq` [文档](https://docs.python.org/3.0/library/heapq.html) 中的例子：
+
+```python
+from heapq import heappush, heappop
+heap = []
+
+data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
+for item in data:
+    heappush(heap, item)
+
+while heap:
+    print(heappop(heap))
+
+```
+
+屏幕输出：
+```
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+```
+
+可见，无论以什么次序插入（`heappush`）到最小堆中，弹出的时候（`heappop`）都是从小到大的顺序。因为这个缘故，最小堆有时也被称为优先队列（priority queue）。其插入和弹出操作的时间复杂度都是 $O(\log N)$ ，因此插入和弹出 $N$ 个数的时间便是 $O(N \log N)$。
+
+最小堆让我们想到了一件事情，那也就是第一讲中我们所提到过的，没有 `sort()` 方法的时候人们是怎么做排序的呢？
+
+### 排序
+
+我们现在有了最小堆，所以我们知道，用 $O(N \log N)$ 的时间复杂度就可以完成排序的动作。这也是快速排序（qsort）的时间复杂度，而且在相当程度上，我们也可以说，最小堆的思想，同时也就是快速排序的思想。
+
+相反，我们讲的冒泡排序又是怎么回事呢？闲话少叙，用 Python 来说说怎么给一个列表 `a` 做冒泡排序：
+
+```python
+def bubble_sort(a):
+    l = len(a)
+    for i in range(0, l):
+        for j in range(i, l):
+            if a[i] > a[j]:
+                a[j], a[i] = a[i], a[j]
+```
+
+**练习**
+
+写出冒泡排序的时间复杂度。
+
+下面这种叫做插入排序。
+
+```python
+def insert_sort(a):
+    l = len(a)
+    for i in range(1, count):
+        t = a[i]
+		for j in range(i - 1, -1, -1):
+			if a[j] < t: break
+			a[j + 1] = a[j]
+			a[j + 1] = t
+```
+
+**练习**
+
+1. 说明插入排序的思想。
+2. 写出插入排序的时间复杂度。
+
+**练习**
+
+阅读有关快速排序的 [Wikipedia 词条](https://en.wikipedia.org/wiki/Quicksort) ，编写 Python 代码。
