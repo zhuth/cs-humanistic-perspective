@@ -71,7 +71,7 @@ O(c) “<” O(log n) “<” O(logk n) “<” O(n) “<” O(nk) \[随 k 增�
 
 #### 循环的时间复杂度
 
-算法分析经常从 for 循环入手，因为它的次数通常来说最方便。考虑如下 Python 代码片段：
+算法分析经常从 `for` 循环入手，因为它的次数通常来说最方便。考虑如下 Python 代码片段：
 
 ```python
 s = 0
@@ -94,61 +94,471 @@ for _ in range(0, n):
 
 但如果我们的问题是求 1 到 2n 的和，上述代码写成
 
+```python
+s = 0
+for _ in range(0, 2*n):
+	s += _
+```
+
 它的时间复杂度仍然是 O(n)。
 
 接下来，考虑如下嵌套的循环：
 
+```python
+for y in range(0, maxy + 1):
+    first = True
+    for x in range(0, maxx + 1):
+        if not first: sys.stdout.write(',')
+        if (x, y) in m:
+            sys.stdout.write(m[(x, y)])
+        else:
+            sys.stdout.write('_')
+        first = False
+    sys.stdout.write('\n')
+```
+
 看起来复杂很多。我们先看里面一个关于 x 的循环，无论怎样运行，这个循环内部的指令数量都与问题的规模无关。因此它就可以看做一个常数项，而所有的常数我们都可以看作 1。于是内部这个关于 x 的循环时间复杂度是 O(maxx + 1) = O(maxx)。
 
-再看外面关于 y 的循环，它包含了两条（因此也是常数项）语句和一个 for 循环，因此它的时间复杂度，也就是整个这个代码片段的时间复杂度为：O(maxy * (O(maxx) + 1)) = O(maxy * maxx) 。
+再看外面关于 y 的循环，它包含了两条（因此也是常数项）语句和一个 `for` 循环，因此它的时间复杂度，也就是整个这个代码片段的时间复杂度为：O(maxy * (O(maxx) + 1)) = O(maxy * maxx) 。
 
 从上述观察我们可以看出，多重循环的时间复杂度，通常就是各级循环迭代规模相乘——除非，在某一级中调用到了一个复杂度超过其内部循环的函数之类。比如：
 
-在这里，我们假设 mat 是一个 n×w 的矩阵而 w 总是大于 m，并假设 sum 函数的时间复杂度为相对其规模是线性的（即，如果规模是 n，它就是 O(n)；此 n 非彼 n），因此就是 O(w) 。而根据 O(w + m) = max(O(w), O(m)) ，x 的循环体内部时间复杂度就是 O(w) 而不是 O(m)，因此整个片段的时间复杂度就是 O(nw) 而不是 O(nm)。
+```python
+for x in range(0, n):
+	for y in range(0, m):
+		print(x+y)
+	print(sum(mat[x,:]))
+```
 
-递归程序的复杂度分析
+在这里，我们假设 `mat` 是一个 n×w 的矩阵而 w 总是大于 m，并假设 sum 函数的时间复杂度为相对其规模是线性的（即，如果规模是 n，它就是 O(n)；此 n 非彼 n），因此就是 O(w) 。而根据 O(w + m) = O(max(w, m)) ，x 的循环体内部时间复杂度就是 O(w) 而不是 O(m)，因此整个片段的时间复杂度就是 O(nw) 而不是 O(nm)。
+
+#### 递归程序的复杂度分析
+
 嗯哼，这是一个非常有趣的问题。
 比如说下面这个代码片段计算著名的斐波那契数列：
 
+```python
+def fib(n):
+	if n == 1 or n == 2: return 1
+	return fib(n - 1) + fib(n - 2)
+```
+
 如果用 T(n) 表示取某个值 n 时上述代码所需进行的基本操作数量，我们会有：
+
 T(n) = T(n - 1) + T(n - 2) + c
 
 显然 T(n) > Fib(n) （Fib 表示“数学上的”斐波那契数列）
-我们知道，斐波那契数列的通项公式是
+我们知道，斐波那契数列的通项公式是：（图来自 Wikipedia）
+
+![Fib](https://wikimedia.org/api/rest_v1/media/math/render/svg/bdd45861380dd60d182655318702aea70439dff8)
 
 因此 Fib(n) = O(cn)，c = (1 + √5) / 2 < 2。
+
 而，做一些扩大，我们有 T(n) ≤ 2T(n - 1) + c
+
 忽略常数项，我们可以有 T(n) ≤ 2n 。即 T(n) = O(2n)
+
 Fib(n) < T(n) = O(2n)
-所以上面这个 fib 代码怎么看都逃不掉是一个指数级别的时间复杂度了。
+
+所以上面这个 `fib` 代码怎么看都逃不掉是一个指数级别的时间复杂度了。
 
 相反，如果我们可以在常数时间内计算出一个数的任意次方（在浮点数允许的范围内，我们确实可以！），直接用上面的通项公式计算斐波那契数列，时间复杂度将是——
+
 O(1)
+
 你看，于是我们如果知道了通项公式，不用花很多时间很多钱，就可以算出比如 Fib(1000)，而用上面的 fib 这个函数则要花许许多多的时间。指数增加是极其可怕的。但不幸的是，我们恐怕并不总是那么幸运，可以有一个别人已经算好了的通项公式来用，而且有时确实也算不出这样一个通项公式来。
 
 在运行时节省下来的时间，是我们为之付出的脑力——和时间——给它买了单。
 
-数据结构
+### 数据结构
 
-我们将在后面讲解数据结构的时候运用到一些关于算法分析的内容，这将为我们展现出，人们为什么要去发明这样一种数据结构。但首先恐怕还是要明确一下，数据结构大致上是什么？
+我们将在后面讲解数据结构的时候运用到一些关于算法分析的内容，这将为我们展现出，人们**为什么**要去发明这样一种数据结构。但首先恐怕还是要明确一下，数据结构大致上是什么？
 
-不要把它和数据库搞起来。数据结构指的是数据的组织方式。它尽管常常可以用 Python 里的“类”来实现，却不是“类”这个概念本身：重要的是数据之间关联的结构，而不是数据自身有什么样的结构。因此，“学生”有“姓名”、“学号”和“成绩”，这不是数据结构考察的内容；数据结构考察怎样将这些信息排列起来，例如存成链表，还是依照学号存成一个二叉树，而这将决定我们访问这些学生信息的效率。
+不要把它和数据库或 Python 里的类搞起来。数据结构指的是数据的组织方式。它尽管常常可以用 Python 里的“类”来实现，却不是“类”这个概念本身：重要的是数据之间关联的结构，而不是数据**自身**有什么样的结构。因此，“学生”有“姓名”、“学号”和“成绩”，这不是数据结构考察的内容；数据结构考察怎样将这些信息排列起来，例如存成链表，还是依照学号存成一个搜索二叉树，而这将决定我们访问这些学生信息的**效率**。
 
-但是，毕竟在运用 Python 实现具体的数据结构时，我们常常利用“类”。这些类除了种种数据之外，额外地包含了描述某种数据结构所要求的数据间关系的信息。
+但是，毕竟在运用 Python 实现具体的数据结构时，我们常常利用“类”。这些类除了种种数据之外，额外地包含了**描述**某种数据结构所要求的数据间关系的信息。
 
 今天我们就讲一个非常简单的，也是大家的老朋友了——链表。我们看到过链表是这个样子的：
 
+```python
+class LinkNode:
+    def __init__(self, val):
+        self.value = val
+        self.next = None
+```
+
 后来我们又看到了双向链表：
+
+```python
+class DoubleLinkNode(LinkNode):
+    def __init__(self, val, prevNode):
+        self.value = val
+        prevNode.next = self
+        self.prev = prevNode
+```
 
 这里，“next”和“prev”字段就属于上面所说的，单向和双向链表所要求的数据间关系。不过，我们其实还没有很好地定义一些操作，以将某个值插入到链表中某个节点的后面。我们在这里就先只实现一个单向链表的完整操作：
 
+```python
+class LinkNode:
+    def __init__(self, val):
+        self.value = val
+        self.next = None
+
+    def append(self, val):
+        self.next = LinkNode(val)
+        return self.next
+    
+    @staticmethod
+    def iterate(head, act):
+        n = head
+        while n is not None:
+            act(n.value)
+            n = n.next
+			
+if __name__ == '__main__':
+	head = LinkNode(1)
+	tail = head
+	for i in range(2, 10):
+		tail = tail.append(i)
+		
+	LinkNode.iterate(head, print)
+```
 
 屏幕上将输出：
 
-在这个过程中，我们发现，单向链表只能从头到尾地走一遍，因此保留一个“头”（head）就非常重要。这个“头”使我们得以几次三番从头再来。
+```
+1
+2
+3
+4
+5
+6
+7
+8
+9
+```
+
+在这个过程中，我们发现，单向链表只能从头到尾地走一遍，因此保留一个“头”（`head`）就非常重要。这个“头”使我们得以**几次三番从头再来**。
 
 我们还可以用下面的语句，寻找某个值 n 是否在链表中，如果存在的话就输出“Exists”：
+
+```python
 LinkNode.iterate(head, lambda x: print('Exists') if x == n else 0)
+```
 
-而双向链表由于多了一个 prev 字段，就保留了前一个数据的位置信息（姑且这么说吧），所以不仅可以正过去，还可以倒过来。实现 DoubleLinkNode 的任务当然就交给诸君留作练习了。一并留作思考的是：上述寻找某数 n 的代码，其时间复杂度是多少？（将访问一个链表节点视为一个基本操作）
+而双向链表由于多了一个 `prev` 字段，就保留了前一个数据的位置信息（姑且这么说吧），所以不仅可以正过去，还可以倒过来。实现 `DoubleLinkNode` 的任务当然就交给诸君留作练习了。一并留作思考的是：上述寻找某数 n 的代码，其时间复杂度是多少？（将访问一个链表节点视为一个基本操作）
 
+### 栈与队列
+
+栈（Stack）与队列（Queue）是两种特殊的链表，它只允许从一端（分别是“头”和“尾”）进行插入操作，同时也只允许从一端读取（都是“头”）。容易想见，它们都可以用单向链表直接实现。我们就来实现一下。
+
+```python
+class Stack:
+    def __init__(self):
+        self.head = None
+        
+    def put(self, val):
+        n = self.head
+        self.head = LinkNode(val)
+        self.head.next = n
+        
+    def pop(self):
+        v = self.head.value
+        self.head = self.head.next
+        return v
+        
+    def empty(self):
+        return self.head is None
+
+class Queue:
+    def __init__(self):
+        self.head = None
+		self.tail = None
+        
+    def put(self, val):
+        if self.empty():
+			self.head = LinkNode(val)
+			self.tail = self.head
+		else:
+			self.tail = self.tail.append(val)
+    
+    def pop(self):
+        v = self.head.value
+		self.head = self.head.next
+        return v
+    
+    def empty(self):
+        return self.head is None
+```
+
+然后我们来试一下，把 1~9 插入到这两个不同的数据结构之中，再来读取它们，会得到什么样的结果：
+
+```python        
+if __name__ == '__main__':
+	print('Queue:')
+    q = Queue()
+    for i in range(1, 10):
+        q.put(i)
+    while not q.empty():
+        print(q.pop())
+    
+	print('Stack:')
+    s = Stack()
+    for i in range(1, 10):
+        s.put(i)
+    while not s.empty():
+        print(s.pop())
+```
+
+屏幕上输出
+
+```
+Queue:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+Stack:
+9
+8
+7
+6
+5
+4
+3
+2
+1
+```
+
+答案是：对于队列，先插入进去的数值也被先读取到了；而对于栈，后插入进去的数值反而先读取到。队列可以看做排队，而栈则可以看做叠起来的盘子；队伍有先来后到的原则，而叠起来的盘子却只能先拿走上面的盘子才能拿到下面的盘子。
+
+实际上，没有人会用这种原始的方式来在 Python 中使用队列和栈。这些都可以非常简单地使用 Python 自己的 list 来实现。要实现一个队列，完全可以这样写：
+
+```python
+class Queue:
+    def __init__(self):
+        self.l = []
+        
+    def put(self, val):
+        self.l.append(val)
+    
+    def pop(self):
+        v = self.l[0]
+        self.l = self.l[1:]
+        return v
+    
+    def empty(self):
+        return len(self.l) == 0
+```
+
+#### 练习
+
+模仿上例，用 `list` 实现栈。
+
+#### 队列和栈的用途
+
+队列和栈有很多种用途。譬如在批量处理一些文件时，我们会遍历一个列表，实际上就已经使用了队列的思想，尽管这时候我们并不显式地删除数组中的元素。栈看似是不可理喻的，但是如果我们把上面这个输出9 ~ 1 的代码用如下形式改写：
+
+```python        
+def printWithStack(num):
+    if num == 10: return
+    printWithStack(num + 1)
+    print(num)
+    
+if __name__ == '__main__':
+    printWithStack(1)    
+```
+
+输出是一样的，而这时候的栈存在于何处呢？存在于系统的函数调用之中。它首先调用了 printWithStack(1)，然后又调用 printWithStack(2)，然后再调用 printWithStack(3) …… 最后它调用到 printWithStack(10) ，再逐层退出。
+
+可以看出，虽然 1 ~ 9 是依顺序作为参数传入的，但是先执行的部分要等待后执行的部分退出之后才打印自己的参数，这就导致我们看到的仍然是 9 ~ 1 的逆序。而如果把 `print(num)` 放置在递归调用 `printWithStack` 之前，我们就会看到输出 1 ~ 9 的顺序。
+
+现在，这就解释了我们已经提到过许多次的 StackOverflow 网站名称的来历。当我们把边界条件 `if num == 10: return` 注释掉，我们将收获一个货真价实的 Stack Overflow：
+
+——等一下，为什么卡住了？
+
+——因为这个程序正在耗尽你的内存呀。
+
+我们可以看成系统（Python 环境）维护了一个函数调用的栈，存储了每个函数运行到的位置和参数、局部变量等信息，而在函数中调用函数，则是把新的函数、参数等压入这个栈；等这个函数运行完毕，它再会从栈中弹出。
+
+### 树（1）
+
+地上的树根在下，数据结构中的树根在上。一张典型的树图是这个样子的：
+
+![Bin Tree](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Binary_tree.svg/330px-Binary_tree.svg.png)
+（图：Wikipedia）
+
+上面这个图中，这棵树上每个节点最多有两个分叉，因此叫做二叉树。（并不是因为它很2啦！）那些下面没有分叉的节点称为“叶节点”，而高高在上孤零零的那一个叫做“根节点”。到根节点的路径长度决定了节点所在的层数，每一层的上下级节点分别叫做“父节点”（parent）和“子节点”（child）。
+
+在树中（也许我们应该说，在树上？）每一根枝杈都是从上一级的节点上分支出来的，这也就是说，除了根节点，每个节点都有且仅有一个父节点。同时，叶节点之间也不会有直接的联系。我们发现，这种关系仍然是单向链表的变体。事实上，我们只需要把原先的 `LinkNode` 改成下面这个样子：
+
+```python
+class BinTreeNode:
+    def __init__(self, val):
+        self.value = val
+        self.child1 = None
+        self.child2 = None
+```
+
+它就可以表示二叉树中的一个节点。而如果我们要更一般地表示一个树节点，也许可以写成这个样子：
+
+```python
+class TreeNode:
+    def __init__(self, val):
+        self.value = val
+        self.children = []
+```
+而 `self.children` 里的元素，或上面的 `self.child1`, `self.child2` 都将是一个 `TreeNode` 或 `BinTreeNode` 。但不像单向链表我们有且只有一条从头到尾的路，从根节点到叶节点之间的路有许多条，而每一条也同时意味着你没法走到那些错过了的点。Two roads diverged in a wood ——
+
+好了，现在让我们来做一个练习。
+
+#### 练习
+
+你是 Robert Frost 的传人，你坚信一定要走人迹罕至的一条路。现在你进入了森林中，森林它一丛丛。每一个岔口都只分成两条路，你可以看到上面都有一个记号，表示这条路有多少人走过（每条路都不会超过 30000 人）。请补完下面的代码，以从森林的入口（root）走到它的一个出口（没有岔路），一路上记下选择的分岔路上走过的总人数。
+
+```python
+class BinTreeNode:
+	def __init__(self, val):
+		self.value = val
+		self.child1 = None
+		self.child2 = None
+		
+    @staticmethod
+    def traverseLikeRobertFrost(root):
+        n = root
+        totalTravellers = 0
+        while n.child1 or n.child2:
+            totalTravellers += n.value
+            n1 = 30000 if not n.child1 else n.child1.value
+            n2 = 30000 if not n.______ else n.____________
+            if ______:
+                n = n.child1
+            else:
+                n = n.child2
+        totalTravellers += n.value
+        return totalTravellers
+```
+
+可以发现，我们尽管是在（现实意义上的）森林中走，对于数据结构来说，我们却是在“树”上走。我们走的是（现实意义上）每个“岔路点”之间的路径，但对于数据结构来说，我们重要的是访问每一个“节点”。
+
+像 Robert Frost 这样走路的话，我们可不一定能保证使最终走过的道路的“总人数”最少。什么情况下可以呢？那就是说，每个先前走过的人都不会半途而废、折返，也不会有什么直升机降下绳索来把他们从这里捎到那里，如此等等，以至于对于数据结构来说，“树”的父节点上记录的访问人数总是精确地等于其所有子节点的访问人数的和。由于人数不可能是负的，所以每次我们选择“少有人的走的路”，最后这些访问人数的总和就一定是最小的。
+
+像 Robert Frost 这样在树上游历的方式，我们称之为——贪心。贪心是一种思想，每次选择当前情况下“代价最小”或能使某种评价最高的选择，而不及其余。因此如果 Robert Frost 在第一张图上的树上行走，他就不会发现 2-7-2 这样一条路，而会去走 2-5-9-4。
+
+有没有什么办法能保证走到的路一定是最短的，而不利用别的额外信息呢？有！那就是*几次三番从头再来*，不破楼兰终不还，把每一条路都走一遍！
+
+——那么，这不是很浪费时间吗？
+
+——也对，那么，就每次只退回到上一个岔路口，再去走那没有走过的路吧！
+
+```python
+
+class TreeNode:
+    def __init__(self, val):
+        self.value = val
+        self.children = []
+        
+    @staticmethod
+    def findMin(start):
+        def DFS(start, total):
+            if len(start.children) == 0:
+                ans = min(ans, total)
+                return
+                    
+            for _ in start.children:
+                DFS(_, total + _.value)
+
+```
+
+这个 `findMin` 方法帮助我们把每一条可能的路径都走了一遍，并最终返回一条路径的节点上 `value` 的总和的最小值。而完成主要工作的是这个称为 DFS 的嵌套函数。只要可能，它总是往树的深处走，走到不可走的时候也就找到了一条路，然后再去更新最小值 `ans`。因此，它叫做深度优先搜索——Depth-First Search。
+
+那么，大家可能会想，是不是还存在一种和它策略不同的搜索方法呢？Bingo！那就是——广度优先搜索（Breadth-First Search，BFS）。
+观察到 DFS 的递归调用，我们说，其实隐含了一个栈；而在这里，我们就要用到一个——队列。
+
+```python
+def BFS(start):
+    q = [{'node': start, 'total': start.value}]
+    idx = 0
+    ans = float('inf')
+    while len(q) > 0:
+        n = q[idx]['node']
+        t = q[idx]['total']
+        idx += 1
+        if len(n.children) == 0: ans = min(ans, t)
+        q += [{'node': _, 'total': t + _.value} for _ in n.children]
+    return ans
+```
+
+我们发现，由于不需要递归调用，BFS 可以自己独立地返回答案。
+
+#### 练习
+
+1. 参照 BFS 函数，用栈改写 DFS 函数。
+2. BFS 和 DFS 的时间复杂度相对于树的总节点数 N 是多少？如果是二叉树，那么相对于二叉树的总层数 M 而言又是多少？
+3. 如果每个节点上的代价相同，即我们不考虑 value 的总和之类的东西，而只考虑总层数，那么，BFS 最先走到的叶节点一定是层数最小（即，距离根节点最近）的那个叶节点，试说明之。BFS 的这个特性使之在寻找根节点到叶节点的最短路径时运行得往往比 DFS 快，但时间复杂度二者仍是一样的，试说明之。
+
+更多关于树的定义和一些崎岖的反例，请参考 https://en.wikipedia.org/wiki/Tree_(data_structure) 
+
+
+### 图（1）
+
+现在我们在树的某两个节点之间再添加一条边。
+如我们所知，它就不是树了。
+它是什么？
+它叫做——图（Graph）。
+
+不要把这里的图和图片、图像或图形相混淆。我们在这里不讲图像处理或图形生成。
+
+![Graph](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/6n-graf.svg/375px-6n-graf.svg.png)
+无向图的例子（图：Wikipedia）
+
+上图中画出的一个图称之为无向图，而无向图其实是有向图的一个特例：任何两个节点之间，要么没有边，要么就有正反两个方向的边。
+
+![Directed Graph](https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/4-tournament.svg/150px-4-tournament.svg.png)
+有向图的例子（图：Wikipedia）
+
+要描述一个图，我们当然也可以像 TreeNode 那样来表示，比如说：
+
+```python
+class Node:
+	def __init__(self, val):
+		self.value = val
+		self.adjacent = []
+```
+
+直观地来说，如果 `adjacent` 字段里存储的每个元素又都是一个 `Node`，这样我们只是存储了图中节点之间的邻接关系——也就是两个节点之间边的方向，而并没有存储关于这条边本身的信息，譬如，长度。所幸，Python 强大而原生的 `dict` 类型弥补了这一点。
+
+但是也因为有 `dict` 类型，因此，我们甚至可以用一种更方便的方式来存储节点之间的关系。这就是图的邻接矩阵表示——尽管我们实际上用的是 `dict` 。假设 `A` 和 `B` 各是一个节点，我们用 `adj[(A, B)]` 来存储从 `A` 到 `B` 的一条边的信息。如果 `(A, B)` 这个元组（tuple）不在 `adj` 这个 `dict` 中，就认为 `A` 到 `B` 之间没有边。显然，图可以从任何一点出发，但并不一定能够走完全部的点。此外，图中还可以有环。
+
+为此，我们既不可以像对于树那样二话不说就 DFS / BFS 伺候，也不可能通过简单记录有没有到达过某个点来避免陷入循环——譬如说，假设一个星形的图：中心节点 A 和周围的几点 B、C、D、E 之间都有无向边，而 B、C、D、E 之间没有边。这时，从任何一点出发实际上都还是能够把别的点访问到，但是 A 节点就要访问 4 次。为什么是 4 次呢？——因为 A 节点一共只有四个相邻节点呀！如果访问 5 次，那么肯定就又有另外某个节点多访问了一次，也就是说，白跑了。比如：
+A-B-A-C-A-D-A-E 这是合理的，而
+A-B-A-C-A-C-A-C-A-C-...-A-D-A-E 这之中就有了一个循环 A-C-A 。
+
+一般地，我们把从某个节点“往外”连接到其它节点的边的数量称为“出度”，而把其它节点连到它的边的数量称为“入度”。对于无向图的每个节点，入度等于出度。对于有向图的节点则不然。
+
+因此我们现在可以说：限制在一条路径中每个节点访问的次数不超过它的出度，就可以在一定程度上避免出现循环的情况。这种对搜索添加有理有据的限制条件的做法，称为剪枝。自然，这也是从搜索遍历树的隐喻之中产生出来的。事实上，它是说：搜索不仅遍历一棵树，而且可以产生一棵树，而剪枝就是说不去产生那一部分的枝杈。这又是怎么回事呢？如果我们现在在 1-2-3-4 这个有向图上从 1 出发进行一次有上述限制的 BFS，我们写出它每个时刻队列中的变化：
+
+```
+a. 从队列中取出1，1相邻的2，4添加到队列
+b. 取出2（路径：1-2），2相邻的4又添加到队列
+c. 取出4（路径：1-4），4相邻的3添加到队列
+d. 取出4（路径：1-2-4），4相邻的3又添加到队列
+e. 取出3（路径：1-4-3），3相邻的1添加到队列
+f. 取出3（路径：1-2-4-3），3相邻的1又添加到队列
+g. 取出1（路径：1-4-3-1），1相邻的2添加到队列（4的访问次数已经到达了它的出度）
+h. 取出1（路径：1-2-4-3-1），1相邻的2、4的访问次数都已经到达了它的出度，找到一条路径：1-2-4-3-1
+i. 取出2（路径：1-4-3-2），2相邻的4访问次数已经到达了它的出度，找到一条路径：1-4-3-2
+```
+
+我们取每一个状态的标号作为节点，可以发现，这里有一棵树：
+```
+a - b -- d -- f -- h
+  \ c -- e -- g -- i
+```
+搜索会生成出一棵树，而这其中的每个节点又对应于图中的节点，尽管有些节点被对应了多次。但如果没有那个限制，我们可以想象，这棵树中就会有无限多个节点了。

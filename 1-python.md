@@ -753,7 +753,7 @@ CREATE TABLE IF NOT EXISTS table_name ...
 
 它的作用是，只有当这个表格不存在的时候才会去创建它。创建一个和已存在的表格同名的表会导致错误。
 
-### 删除表格
+#### 删除表格
 
 ```sql
 DROP TABLE IF EXISTS table_name
@@ -971,4 +971,4 @@ lst = [_ for _ in some_iterating_function()]
 最后，Happy Python-ing!
 
 
-[第二部分 数据结构与算法分析](2-algorithm.md)
+[第二部分 数据结构与算法分析](2-algo.md)
