@@ -9,4 +9,4 @@ Computer Science in a Humanistic Perspective: A Brief Introduction (in Chinese)
 
 &copy; Copyright ZTH 2017
 
-*You may regard this "copyright" as the permission to redistribute any part or the whole of this work only under the circumstance that your redistribution carries also this copyright claim and a link to the [current repository on GitHub](https://github.com/zhuth/cs-humanistic-perspective/).*
+*You may take this "copyright" as a permission to redistribute any part or the whole of this work so long as you keep this copyright claim and a link to the [current repository on GitHub](https://github.com/zhuth/cs-humanistic-perspective/) in your redistribution.*
