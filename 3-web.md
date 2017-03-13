@@ -259,11 +259,7 @@ def index():
     )
 ```
 
-这样，刷新 `http://localhost:5000/`，浏览器中便会显示一个按钮
-
-> <button>Click!</button>
- 
-点击它，会发现页面没有变化，但是地址栏中的内容却变成了 `http://localhost:5000/?button=Click%21`。
+这样，刷新 `http://localhost:5000/`，浏览器中便会显示一个按钮。点击它，会发现页面没有变化，但是地址栏中的内容却变成了 `http://localhost:5000/?button=Click%21`。
 
 #### 发生了什么
 
@@ -525,18 +521,8 @@ def index():
 
 现在让我们回到首页，看看刚才的有没有添加上：
 
->         <h1>书目列表</h1>
-        <hr />
-		<a>添加书目</a>
-        <ul>
-            <li>
-                <a href="">标题</a>
-                作者
-                某个出版社
-				2000
-            </li>
-        </ul>
-		
+![book list](images/screenshot-2-list.png)
+
 看来，是真的添加上了。最后，让我们看一下目前这个网站的全部代码：
 
 ```python
