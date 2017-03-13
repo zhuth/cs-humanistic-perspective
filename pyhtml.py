@@ -105,8 +105,10 @@ class HTMLTag:
             return res[0] if len(res) == 1 else res
 
 
-    def append(self, ele):
-        self.children.append(ele)
+    def append(self, ele, *args):
+        if isinstance(ele, list): self.children += ele
+        else:  self.children.append(ele)
+        self.children += args
         return self
 
     def remove(self, ele):
@@ -144,6 +146,18 @@ class H5(HTMLTag):
     pass
 
 class BLOCKQUOTE(HTMLTag):
+    pass
+    
+class HR(HTMLTag):
+    pass
+    
+class UL(HTMLTag):
+    pass
+    
+class OL(HTMLTag):
+    pass
+    
+class LI(HTMLTag):
     pass
 
 class B(HTMLTag):
@@ -216,6 +230,12 @@ class IMG(HTMLTag):
     pass
 
 class EM(HTMLTag):
+    pass
+    
+class FORM(HTMLTag):
+    pass
+    
+class INPUT(HTMLTag):
     pass
 
 class ANY(HTMLTag):

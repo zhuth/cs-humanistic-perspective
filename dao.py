@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-import os, sqlite3, time, datetime
+import os, sqlite3, time, datetime, re
 
 class DBObject:
     FIELD_CONV = {
@@ -21,13 +21,19 @@ class DBObject:
 
     DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-    def __init__(self):
-        import md5
+    def __init__(self, **kwargs):
+        import hashlib
         self.dict = {}
         self.conn = sqlite3.connect('my.db')
         self.table_name = self.__class__.__name__
-        self.dict['id'] = md5.md5('%.6f' % time.time()).hexdigest()
+        self.dict['id'] = hashlib.md5(('%.6f' % time.time()).encode('utf-8')).hexdigest()
         self.dict['createdAt'] = datetime.datetime.now().strftime(DBObject.DATETIME_FORMAT)
+        for col, default in self.__class__.__dict__.items():
+            if col.startswith('__'): continue
+            self.dict[col] = default
+        for _ in kwargs:
+            if _ in self.dict:
+                self.dict[_] = kwargs[_]
 
     def set(self, key, value):
         self.dict[key.lower()] = value
@@ -66,7 +72,7 @@ class DBObject:
 
         if where != '':
             where = ' WHERE ' + where
-        where_args = [_.decode('utf-8') if isinstance(_, str) else _ for _ in kwargs.values()]
+        where_args = list(kwargs.values())
 
         if order != '':
             order = ' ORDER BY ' + ','.join([DBObject.FIELD_CONV.get(_, 'c_' + _) + (' desc' if _.startswith('-') else '') for _ in order.split(',')]).replace('-', '')
@@ -77,7 +83,7 @@ class DBObject:
 
         r = []
         for res in c.execute("SELECT * FROM " + self.table_name + where, where_args):
-            k = eval(self.__class__.__name__ + '()')
+            k = self.__class__()
             for i in range(0, len(res)):
                 try:
                     x = json.loads(res[i])
@@ -95,24 +101,28 @@ class DBObject:
         create = "CREATE TABLE IF NOT EXISTS " + self.table_name + " (id TEXT PRIMARY KEY"
         for c in self.dict.keys():
             if c.lower() == 'id': continue
-            create += ", `c_" + c + "` " + ("INTEGER" if isinstance(self.dict[c], int) else "TEXT")
+            create += ", `c_" + c + "` " + ("INTEGER" if isinstance(self.dict[c], int) else "REAL" if isinstance(self.dict[c], float)  else "TEXT")
         create += ")"
         c = self.conn.cursor()
         c.execute(create)
 
         cols = self.get_cols()
-        colcount = len(cols)
-        for _ in self.dict:
-            if _ not in cols: del self.dict[_]
-        c.execute("REPLACE INTO " + self.table_name + "(" + ','.join([('' if _ == 'id' else 'c_') + _ for _ in self.dict.keys()]) + ") VALUES (" + ("?," * colcount)[:-1] +  ")", [json.dumps(_) if isinstance(_, type([])) or isinstance(_, type({})) else _ for _ in self.dict.values()])
+        for _ in list(self.dict.keys()):
+            if _.lower() not in cols: del self.dict[_]
+        colcount = len(self.dict)
+
+        sql = "REPLACE INTO " + self.table_name + "(" + ','.join([('' if _ == 'id' else 'c_') + _ for _ in self.dict.keys()]) + ") VALUES (" + ("?," * colcount)[:-1] +  ")"
+        vals = tuple(json.dumps(_) if isinstance(_, type([])) or isinstance(_, type({})) else _ for _ in self.dict.values())
+        c.execute(sql, vals)
         self.conn.commit()
+        return self
 
 class File:
     BASE = 'static/files'
 
     def __init__(self, token, stream):
-        import md5
-        self.id = md5.md5('%.6f' % time.time()).hexdigest()
+        import hashlib
+        self.id = hashlib.md5(('%.6f' % time.time()).encode('utf-8')).hexdigest()
         self.url = '/' + File.BASE + '/' + self.id + '.' + token[token.rfind('.')+1:]
         self.stream = stream
 

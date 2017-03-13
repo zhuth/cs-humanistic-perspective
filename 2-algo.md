@@ -883,10 +883,10 @@ def insert_sort(a):
     l = len(a)
     for i in range(1, count):
         t = a[i]
-		for j in range(i - 1, -1, -1):
-			if a[j] < t: break
-			a[j + 1] = a[j]
-			a[j + 1] = t
+        for j in range(i - 1, -1, -1):
+            if a[j] < t: break
+            a[j + 1] = a[j]
+            a[j + 1] = t
 ```
 
 **练习**
@@ -911,44 +911,44 @@ def insert_sort(a):
 
 ```python
 def Dijkstra(start, nodes, adj): # start：开始的点；nodes：图中节点的列表；adj：存储边的信息的 dict
-	s = set() # 这个集合中保存作为最短路径而考虑过的节点
-	dist = {} # 这个字典以节点为下标，保存的是从 start 点到某点之间的最短距离
-	prev = {} # 这个字典同样以节点为下标，保存最短距离中，到达某一节点之前的节点是哪个；可以参见 get_path_from_prev 函数，它将返回一个字符串，表示完整的路径
-	
-	for n in nodes:
-		if (start, n) in adj:
-			prev[n] = start
-		dist[n] = float('inf')
-		
-	dist[start] = 0
-	s.add(start)
-	
-	for n in nodes:
-		if n == start: continue
-		mindist = float('inf')
-		u = start
-		for m in nodes:
-			if m in s or m not in dist: continue
-			if dist[m] < mindist:
-				u = m
-				mindist = dist[m]
+    s = set() # 这个集合中保存作为最短路径而考虑过的节点
+    dist = {} # 这个字典以节点为下标，保存的是从 start 点到某点之间的最短距离
+    prev = {} # 这个字典同样以节点为下标，保存最短距离中，到达某一节点之前的节点是哪个；可以参见 get_path_from_prev 函数，它将返回一个字符串，表示完整的路径
+    
+    for n in nodes:
+        if (start, n) in adj:
+            prev[n] = start
+        dist[n] = float('inf')
+        
+    dist[start] = 0
+    s.add(start)
+    
+    for n in nodes:
+        if n == start: continue
+        mindist = float('inf')
+        u = start
+        for m in nodes:
+            if m in s or m not in dist: continue
+            if dist[m] < mindist:
+                u = m
+                mindist = dist[m]
 
-		s.add(u)
-		for m in nodes:
-			if m in s or (u, m) not in adj: continue
-			if dist[u] + adj[(u, m)] < dist[m]:
-				dist[m] = dist[u] + adj[(u, m)] # 注1
-				prev[m] = u
-	
-	return prev, dist
-	
+        s.add(u)
+        for m in nodes:
+            if m in s or (u, m) not in adj: continue
+            if dist[u] + adj[(u, m)] < dist[m]:
+                dist[m] = dist[u] + adj[(u, m)] # 注1
+                prev[m] = u
+    
+    return prev, dist
+    
 def get_path_from_prev(prev, dest):
-	s = ''
-	n = dest
-	while n:
-		s = n.name + ' ' + s # 假设节点的名称存储在 .name 中
-		n = prev[n]
-	return s
+    s = ''
+    n = dest
+    while n:
+        s = n.name + ' ' + s # 假设节点的名称存储在 .name 中
+        n = prev[n]
+    return s
 ```
 
 容易看出， Dijkstra 算法并不是找出某个起点到**某个**终点之间的最短路径，而是找出它到所有节点之间的最短路径。它的方式是这样的：对于我们考虑的起点 `start`，一个中间点 `u` 和下一个中间点 `m`，首先让 `start` 到 `u` 之间的距离最短，这样的话，从 `start` 经过 `u` 到达 `u` 相邻的点 `m` 之间的最短距离，也就是从 `start` 到 `u` 的最短距离加上 `u` 到 `m` 的距离。（`注1`）依次遍寻各个可能的中间节点，就得出了这样一个距离；而依照节点的顺序，总是能够经过不断的更新而得到真正的最短距离。

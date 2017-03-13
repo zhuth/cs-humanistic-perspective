@@ -91,9 +91,9 @@ sdageg.asdfgewg.wwqew(2)
 1. 构词法：关键字与操作符（“虚词”）、标示符（“实词”）、字面量（“引用”）的基本用法
 2. 句法：以关键词为索引介绍基本用法
 3. 修辞学：如何理解——如何更有效率地进行表达
-	- 成语：固定搭配、常用实践
-	- 语句：重载函数与操作符、修饰器等
-	- 语篇：程序语言的篇章结构和组织
+    - 成语：固定搭配、常用实践
+    - 语句：重载函数与操作符、修饰器等
+    - 语篇：程序语言的篇章结构和组织
 
 ## 第一讲 构词法
 
@@ -136,13 +136,13 @@ class LinkNode:
 Python 共有如下这些关键字：
 
 ```
-False	class	finally	is	return
-None	continue	for	lambda	try
-True	def	from	nonlocal	while
-and	del	global	not	with
-as	elif	if	or	yield
-assert	else	import	pass
-break	except	in	raise
+False    class    finally    is    return
+None    continue    for    lambda    try
+True    def    from    nonlocal    while
+and    del    global    not    with
+as    elif    if    or    yield
+assert    else    import    pass
+break    except    in    raise
 ```
 
 
@@ -306,13 +306,13 @@ __注意__：只有开头的空格与缩进有关；词与词之间的空格被�
 因而我们可能最好还是从关键字说起。
 
 ```
-False	class	finally	is	return
-None	continue	for	lambda	try
-True	def	from	nonlocal	while
-and	del	global	not	with
-as	elif	if	or	yield
-assert	else	import	pass
-break	except	in	raise
+False    class    finally    is    return
+None    continue    for    lambda    try
+True    def    from    nonlocal    while
+and    del    global    not    with
+as    elif    if    or    yield
+assert    else    import    pass
+break    except    in    raise
 ```
 
 我们又看到了这个表。`False`、`True`、`None` 可以看作 Python 定义的不变的“字面量”，分别表示逻辑判断中的假、真，和无。`and`、`or`、`not`、`in`、`is` 可以看做操作符，因为它们就像 `+`、`-`、`*` 这些一样，需要操作数，它们依次表示 `and` 逻辑与、`or` 逻辑或、`not` 逻辑非（只需后接一个操作数）、`in` 判断某元素是否在某列表/元组/集合/词典下标之中、`is` 两个标示符是否指的是同一个对象。
@@ -363,18 +363,18 @@ break	except	in	raise
 
 ```python
 def foo(arg):
-	
-	def bar(Arg):
-		print(arg)
-		
-	if arg > 20: return 0
-	bar(arg + arg)
-	arg += foo(arg + 5)
-	
-	for _ in range(0, arg):
-		arg += _
-		
-	return arg
+    
+    def bar(Arg):
+        print(arg)
+        
+    if arg > 20: return 0
+    bar(arg + arg)
+    arg += foo(arg + 5)
+    
+    for _ in range(0, arg):
+        arg += _
+        
+    return arg
 ```
 
 阅读下列代码，并改写为计算 1 到 100 的和的代码：
@@ -411,9 +411,9 @@ return LinkNode(val)
 
 ```python
 class LinkNode:
-	def __init__(self, val): ...
-	def printValue(self): ...
-	def create(val): ...
+    def __init__(self, val): ...
+    def printValue(self): ...
+    def create(val): ...
 ```
 
 - 不可能是 `create`：前面引的这行就在 `create` 之中，如果是 `create` 的话，程序会不断调用自己而没有终结，这样最后会出错。
@@ -430,15 +430,15 @@ class LinkNode:
 
 ```python
 def LinkNode_init(val):
-	self = {
-		'value': val,
-		'next': None
-	}
-	return self
-	
+    self = {
+        'value': val,
+        'next': None
+    }
+    return self
+    
 def LinkNode_printValue(self):
-	print(self['value'])
-	
+    print(self['value'])
+    
 head = LinkNode_init(1)
 LinkNode_printValue(head)
 ```
@@ -452,9 +452,9 @@ LinkNode_printValue(head)
 
 - 定义一个标示符（类名）
 - 定义一组函数，这些函数要么：
-	- 是 __init__ ，“无中生有”地返回一个 “self” ——实例；
-	- 有 @staticmethod ，这时就和普通的函数没有太大区别；
-	- 都不是的话，第一个参数是 self，其值是在调用的时候位于函数名称前 . 之前的东西。
+    - 是 __init__ ，“无中生有”地返回一个 “self” ——实例；
+    - 有 @staticmethod ，这时就和普通的函数没有太大区别；
+    - 都不是的话，第一个参数是 self，其值是在调用的时候位于函数名称前 . 之前的东西。
 
 什么是 `class` 的“域”？
 - 域就是：`__init__` 中在 `self.` 后的东西，它可以被赋值、读取。
@@ -519,10 +519,10 @@ x = 1
 y = 2
 
 def foo(x):
-	x += 1
-	y += 1
-	print(x, y)
-	
+    x += 1
+    y += 1
+    print(x, y)
+    
 print(x, y)
 foo(x)
 foo(y)
@@ -537,9 +537,9 @@ print(x, y)
 l = [1, 2, 3]
 m = [4, 5, 6]
 def bar(l):
-	l[0] = 3
-	return l
-	
+    l[0] = 3
+    return l
+    
 print(l)
 print(bar(l))
 print(l)
@@ -555,12 +555,12 @@ print(m)
 
 ```python
 class A:
-	def __init__(self, x):
-		self.x = x
-		
+    def __init__(self, x):
+        self.x = x
+        
 def boo(a):
-	a.x = 2
-	
+    a.x = 2
+    
 a = A(1)
 b = A(2)
 
