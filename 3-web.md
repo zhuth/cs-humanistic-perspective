@@ -598,7 +598,7 @@ if __name__ == '__main__':
 
 **练习**
 
-编写表单生成和处理函数，以依照上面定义的 `Annotation` 来添加笔记。使显示书目标题的链接指向新增笔记的处理函数页面。
+编写表单生成和处理函数，以依照上面定义的 `Annotation` 来添加笔记。使显示书目标题的链接指向笔记列表页面，而在笔记列表页面中则同样显示一个新增笔记的链接。
 以下代码片段供参考：
 
 ```python
@@ -628,3 +628,188 @@ def add_annotation_deal(book_id):
     return '添加成功！'
     
 ```
+
+## 第三讲 做得好看一点
+
+好看，是一种口味问题。比如，我觉得现在这样子，很朴素，也算好看。但是……毕竟并不是所有的场合都适合这种朴素。我们还是希望它做得更“现代”一些。
+
+至此我们碰到了一些 HTML 标签，但我们还是处于用 Python 语言来描述的状态，而没有直面它们本身。这就使我们错过了许多借鉴学习的机会。
+
+### Flask 的模板
+
+我们再回过头来看前两次网页之路中的内容。我们用一个 pyhtml.py 提供的类来用 Python 语言描述了网页的结构：最外面是 `<html>` 标签，然后有 `<head>` 和 `<body>`，`<head>` 中又有 `<title>` 决定了标题，而 `<body>` 中的 `<div>`、`<p>`、`<img>` 等等各司其职，组成了网页中的元素。
+
+但问题是，这并不是一种通行的方法。我们依赖 Python 来产生 HTML 代码，这就不能使负责“网页上怎样呈现”的代码与“网页上呈现什么”的代码分开来，而这将不利于我们维护代码，也不利于几个人分工合作来完成同一个网站。
+
+将这二者分开，Flask 框架提供了一个办法，叫做 `template` 模板。假设我们是在 `~/Works/cs-humanistic-perspective` 这个文件夹里工作，我们创建一个文件夹，取名叫 `templates`。然后，让我们在 `templates` 里建立一个文件，叫做 `index.html` 。 接下来，我们修改原来的 `index` 函数：
+
+```python
+@app.route('/')
+def index():
+    return render_template('index.html', books=Book().select())
+```
+
+别忘了要在 `from Flask import ...` 最后加上这个 `render_template`。
+
+接下来，我们来编辑这个 `index.html`。
+
+```html
+<html>
+<head>
+	<title>书目笔记</title>
+</head>
+<body>
+	<h1>书目列表</h1>
+	<hr/>
+	<a href="{{ url_for('add_book_form') }}">添加书目</a>
+	<ul>
+		{% for _ in books %}
+		<li><a href="{{ url_for('list_annotations', book_id=_.id) }}">{{ _.get('title') }}</a> {{ _.get('author') }} {{ _.get('publisher') }}  {{ _.get('year')}} <a href="{{ url_for('add_annotation_form', book_id=_.id) }}">+</a></li>
+		{% endfor %}
+	</ul>
+</body>
+</html>
+```
+
+运行，我们发现，首页完全没什么变化嘛！这就对了。我们已经成功地将网页里要显示的数据内容，和排列这些数据的方式分离开来。
+
+#### 发生了什么
+
+我们建立了一个模板，并在 Python 中让 Flask 来用它产生网页代码。
+
+我们的模板用到了一个变量叫 `books`，也就是 `{% for _ in books %}` 中用到的，而它的值则在 Python 代码中调用 `render_template` 时通过关键字参数的方式给定了。在 Flask 的模板中，语法和 Python 有点相像，但其实它们可以说是完全不同的。注意到它并不以 `:` 结尾，而且下面还有一个对应的 `{% endfor %}`。 `{{ }}` 括起的部分，其表达式的值会出现在显示出来的网页上；而 `{% %}` 括起的部分，可以称为控制语句，它们控制一些部分的代码怎样显示出来。除了 `for` 之外，常用的还有 `if` 等。
+
+而作为模板的网页是用 HTML 代码写成的。可是我们还不怎么会写 HTML，怎么办？网页教程也是千千万，我个人认为 w3schools（https://www.w3schools.com/；中文版 http://www.w3school.com.cn/）就很好。不过更方便的一种手段，也许就是从别人的基础上做起。[HTML5 UP!](https://html5up.net/) 是一个提供免费网页模板的网站。大致上说，我们只要选择一个比较合适（好看）的代码下载下来，然后用 Flask 的模板功能填充进合适的内容就可以了。
+
+### 网页路径和静态文件
+
+我们已经对网页的路径略有了解。现在我们来看 HTML 中如何表示某个路径的。我们就只看最简单的 `<a href="...">` 标签。`...` 的部分通常有如下几种写法：
+	
+- `http://github.com/`：无论这个网页本身的路径是什么，这个路径都表示，这个连接只会指向 `http://github.com/` 这个网址。有着完整的协议名称、主机名和（可选的）路径的网址称为绝对路径。
+- `//github.com/zhuth`：如果这个网页本身是以 HTTP 协议提供的，那么它就指向 `http://github.com/zhuth`；如果是以 HTTPS 协议提供的，那么它就指向 `https://github.com/zhuth`。
+- `/zhuth`：`/` 开头的路径也是一种绝对路径，它表示，无论当前网页的具体路径是什么，它都会取代者其中的路径部分。比如，如果我们是在 `http://example.com/abcdefg/hijklmn` 上出现了这个网页，它就指向 `http://example.com/zhuth`；而如果是在 `https://github.com/some/other/path` 上出现的，它就指向 `https://github.com/zhuth`。它是一种很常用的形式，因为我们往往也不是很有必要确定自己做的网页的具体域名之类是什么。
+- `zhuth`：这是一种相对路径，它根据当前网页的位置来决定。比如，当前网页的网址是 `http://example.com/some/page`，它就指向 `http://example.com/some/zhuth`；如果是 `http://example.com/some/page/`，它就指向 `http://example.com/some/page/zhuth`。注意末尾这一个小小的 `/`！它就有很大的不同。我们在用 Flask 做网页时，很少采用这种形式。
+- `../zhuth`：这是一种相对路径，其中 `../` 表示“当前位置的上一级目录”，比如 `http://example.com/some/page/1` 的 `../` 就是 `http://example.com/some/`。类似的还有 `./` 表示“当前位置所在的目录”，通常可以省略掉，因此 `./zhuth` 和 `zhuth` 的效果是一样的。`../` 还可以连用，形成诸如 `../../../zhuth`。特别地，如果 `../` 的数量超过当前位置所在的实际目录层数，它和 `/` 在效果上是一样的。
+
+可以看出，对于网站来说，使用绝对路径会比较好一些。而这也是考虑到我们用 Flask 做的网站本身往往占据了一个单独的主机名，如 `localhost:5000`。但最好的方式仍然是像我们在 `index.html` 中所做的那样，用 `{{ url_for(...) }}` 函数。
+
+特别地，`url_for` 接受一个特殊的字串作为第一个参数，也就是 `url_for('static', filename='style.css')` 这样的形式。它表示静态文件夹 `static/` 中的某个文件。因此我们首先还是要在 Python 代码所在的文件夹里新建一个文件夹，叫做 `static` （这是规定！）。所谓静态文件，就是不因用户的访问、数据的变化而变化的那部份文件。
+
+我们从 HTML5UP! 上下载 Phantom 这个模板：https://html5up.net/phantom/download ，解压缩，得到下面这些文件（夹）：
+
+```LICENSE.txt   assets        generic.html  index.html
+README.txt    elements.html images```
+现在，我们把 `images` 这个文件夹和 `assets` **下面的**文件夹（`css` 、`fonts`、`js` 等）都移动到我们刚刚建立的这个 `static` 文件夹里，把 `generic.html`、`index.html`、`elements.html` 这三个文件移动到 `templates` 文件夹里（覆盖掉我们刚才写的 `index.html`，然后重新来过）。这样，我们的工作文件夹的结构如下：
+
+![Folders](images/screenshot-3-folders.png)
+
+重新打开 `templates/index.html`，我们来看看它里面有什么：
+
+```python
+<!DOCTYPE HTML>
+<!--
+	Phantom by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Phantom by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+	<body>
+	...
+```
+
+喔，好多东西。不着急，我们先看看，这里面的路径是不是都需要修改了？很不幸，确实是这样。不过，还好我们有──正则表达式！
+
+使用你的编辑器的正则表达式替换功能，搜索 `"assets/(.*?)"`（含双引号），替换成 `"{{ url_for('static', filename='$1') }}"`（含双引号）；再搜索 `"(images/.*?)"`（含双引号），同样替换成 `"{{ url_for('static', filename='$1') }}"`（含双引号）。我们再来重新运行网页代码，打开 `http://localhost:5000/` 看看：
+
+哗，完全不是我们刚才的那个网页了。书目的内容怎么填进去呢？不要着急，我们用 Chrome 的 Inspect Element 功能，来选择一个项目，比如那个 MAGNA 好了：看到 Chrome 提示我们它的位置是在 `#main > div > section > article:nth-child(1) > a`。（这是一个 CSS Selector 的元素位置表示，感兴趣的读者可以参看 w3schools 的相关教程学习。其实很多东西不难猜到，不带任何符号修饰的部分是 HTML 标签的名称，而 `#` 后面的对应于  `name` 属性，`.` 后面的对应于 `class` 属性，等等。）嗯，我们就按图索骥在 HTML 代码里找到这个 MAGNA 元素（和它所在的这一级）：
+
+```html
+<section class="tiles">
+	<article class="style1">
+		<span class="image">
+			<img src="{{ url_for('static', filename='images/pic01.jpg') }}" alt="" />
+		</span>
+		<a href="generic.html">
+			<h2>Magna</h2>
+			<div class="content">
+				<p>Sed nisl arcu euismod sit amet nisi lorem etiam dolor veroeros et feugiat.</p>
+			</div>
+		</a>
+	</article>
+	<article class="style2">
+		<span class="image">
+			<img src="{{ url_for('static', filename='images/pic02.jpg') }}" alt="" />
+```
+
+看到，每一个项目可以拆解成这样一些东西：
+
+- `<article class="style1">`──style 后面的数字从 1 到 6 不等，对应于不同的颜色；
+- `<span class="image">`──里面包含了一张图片，我们将来会用到图书的封面图片，所以先不管它；
+- `<a href="generic.html">`──这里有个连接，我们就让它指向图书的信息页面好了；
+- `<h2>Magna</h2>`──显示的大文字，我们让它显示书目标题；
+- `<div class="content">`──里面有鼠标移动上去之后显示出来的文字，我们让它显示书目的信息。
+	
+好，说干就干，我们删掉其它 `article` 元素，并把第一个用 `{% for %}` 围起来：
+
+```html
+{% for _ in books %}
+<article class="style{{ loop.index % 6 + 1 }}">
+	<span class="image">
+		<img src="{{ url_for('static', filename='images/pic01.jpg') }}" alt="" />
+	</span>
+	<a href="{{ url_for('list_annotations', book_id=_.id) }}">
+		<h2>{{ _.get('title') }}</h2>
+		<div class="content">
+			<p>作者：{{ _.get('author') }} 出版社：{{ _.get('publisher') }} 年份：{{ _.get('year')}}</p>
+		</div>
+	</a>
+</article>
+{% endfor %}
+```
+
+保存，刷新页面！
+
+**练习**
+
+修改该模板中的页面，并改写相关函数，将我们的书目笔记网站改得漂亮一些。
+
+### 可是为什么这个网页就突然好看了呢
+
+观察现在的 `templates/index.html`，我们没有看到任何有关什么地方用什么颜色、字体、字号的描述。原来，它们都藏进了 `class` 标签和相关的标签名称中，而开头的那一行 `<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />` 指定了一个 CSS 文件。我们把它打开来看看里面有什么：
+
+```css
+@import url(font-awesome.min.css);
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,700,900");
+
+/*
+	Phantom by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+*/
+
+/* Reset */
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, ...{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+	
+```
+
+一大堆东西啊……
+
+嗯，不着急，我们并不需要从头开始写。相反，更多专门的 CSS 包都有相关文档，告诉我们要显示什么效果该怎样配合使用 HTML 标签和 `class` 属性。这时候，善用 Chrome 的 Inspect Element 并在右侧修改一些 Style 属性就很重要了。当然，感兴趣的读者还可以进一步求索 w3schools 提供的 CSS 教程，这里就不叙述了。总之，有关网页“看上去怎么样”的定义，大多数时候就有赖于这些 CSS 文件。这样，我们一方面通过 HTML 和 Python 代码分离，实现网页布局与数据内容在服务器这边的分离；又通过 CSS 文件，实现网页内容和显示样式在浏览器（浏览者）那边的分离。这种分离使分工合作成为可能──它本身就是一种分工组织的方式。
+

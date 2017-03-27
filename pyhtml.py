@@ -19,12 +19,22 @@ class HTMLTag:
             for arg in args:
                 if isinstance(arg, list): self.children += arg
                 else: self.children.append(arg)
-
-    def __str__(self):
+                
+    def _get_attrs(self):
         CONV = {
             '_class': 'class',
             'Class': 'class'
         }
+
+        attrs = ''
+        for k in self.attr:
+            if isinstance(self.attr[k], list):
+                self.attr[k] = ' '.join([str(_) for _ in self.attr[k]])
+            attrs += ' ' + CONV.get(k, k) + '="' + str(self.attr[k]) + '"'
+        
+        return attrs
+
+    def __str__(self):
 
         from xml.sax.saxutils import escape, unescape
         # escape() and unescape() takes care of &, < and >.
@@ -37,16 +47,9 @@ class HTMLTag:
         def html_escape(text):
             return escape(text, html_escape_table)
 
-
-        attrs = ''
-        for k in self.attr:
-            if isinstance(self.attr[k], list):
-                self.attr[k] = ' '.join([str(_) for _ in self.attr[k]])
-            attrs += ' ' + CONV.get(k, k) + '="' + str(self.attr[k]) + '"'
-
         idt = ' ' * self.indent
             
-        h = idt + '<' + self.tag + attrs
+        h = idt + '<' + self.tag + self._get_attrs()
         if len(self.children) == 0:
             h+= ' />'
         else:
@@ -237,6 +240,13 @@ class FORM(HTMLTag):
     
 class INPUT(HTMLTag):
     pass
+
+class TEXTAREA(HTMLTag):
+    def __str__(self):
+        if 'value' in self.attr:
+            self.children = [self.attr['value']]
+            del self.attr['value']
+        return ' ' * self.indent + '<textarea' + self._get_attrs() + '>' + ''.join([str(_) for _ in self.children]).strip() + '</textarea>'
 
 class ANY(HTMLTag):
     def __init__(self, *args, **kwargs):

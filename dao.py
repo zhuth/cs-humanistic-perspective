@@ -117,6 +117,11 @@ class DBObject:
         self.conn.commit()
         return self
 
+    def delete(self):
+        c = self.conn.cursor()
+        c.execute('DELETE FROM ' + self.table_name + ' WHERE ID = ?', (self.id,))
+        self.conn.commit()
+
 class File:
     BASE = 'static/files'
 
