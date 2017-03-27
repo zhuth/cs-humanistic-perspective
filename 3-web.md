@@ -697,8 +697,10 @@ def index():
 
 我们从 HTML5UP! 上下载 Phantom 这个模板：https://html5up.net/phantom/download ，解压缩，得到下面这些文件（夹）：
 
-```LICENSE.txt   assets        generic.html  index.html
-README.txt    elements.html images```
+```
+LICENSE.txt   assets        generic.html  index.html
+README.txt    elements.html images
+```
 
 现在，我们把 `images` 这个文件夹和 `assets` **下面的**文件夹（`css` 、`fonts`、`js` 等）都移动到我们刚刚建立的这个 `static` 文件夹里，把 `generic.html`、`index.html`、`elements.html` 这三个文件移动到 `templates` 文件夹里（覆盖掉我们刚才写的 `index.html`，然后重新来过）。这样，我们的工作文件夹的结构如下：
 
