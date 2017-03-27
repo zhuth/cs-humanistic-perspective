@@ -699,13 +699,14 @@ def index():
 
 ```LICENSE.txt   assets        generic.html  index.html
 README.txt    elements.html images```
+
 现在，我们把 `images` 这个文件夹和 `assets` **下面的**文件夹（`css` 、`fonts`、`js` 等）都移动到我们刚刚建立的这个 `static` 文件夹里，把 `generic.html`、`index.html`、`elements.html` 这三个文件移动到 `templates` 文件夹里（覆盖掉我们刚才写的 `index.html`，然后重新来过）。这样，我们的工作文件夹的结构如下：
 
 ![Folders](images/screenshot-3-folders.png)
 
 重新打开 `templates/index.html`，我们来看看它里面有什么：
 
-```python
+```html
 <!DOCTYPE HTML>
 <!--
 	Phantom by HTML5 UP
