@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import ast
 
 import sys
@@ -7,26 +8,58 @@ class NotSupportedInJS(Exception):
     
 class ExpParser(ast.NodeVisitor):
     for_count = 0
-    context = []
+    context = [None]
+    buf = ''
+    
+    identifiers = {}
     
     def print_(self, *args):
-        sys.stdout.write(' '.join([str(_) for _ in args]))
+        s = ' '.join([str(_) for _ in args])
+        for _ in self.context:
+            if hasattr(_, 'refrain') and _.refrain:
+                self.buf += s
+                return
+        self.buf = ''
+        sys.stdout.write(s)
         
     def print(self, *args):
         self.print_(*args)
-        sys.stdout.write('\n')
+        self.print_('\n')
     
     def print_indent(self):
-        self.print_('  ' * (len(self.context) - 2))
+        self.print_('  ' * (len(self.context) - 3))
         
     def print_notsupported(self):
         self.print_('/* Not Supported */')
+        
+    def register_id(self, node, typ):
+        def _id(n):
+            if hasattr(n, 'id'): return n.id
+            elif hasattr(n, 'name'): return n.name
+            else: return ''
+        
+        gid = _id(node)
+        while hasattr(node, 'parent') and node.parent:
+            gid = _id(node.parent) + '.' + gid
+            node = node.parent
+            
+        self.identifiers[gid] = typ
+        
+    ###
     
     def visit(self, node):
         if not node:
             self.print_('null')
             return
-        node.parent = self.context[-1] if len(self.context) > 0 else None
+            
+        node.parent = None
+        t = list(self.context)
+        t.reverse()
+        for _ in t:
+            if type(_) in [ast.ClassDef, ast.FunctionDef]:
+                node.parent = _
+                break
+                
         self.context.append(node)
         super().visit(node)
         self.context.pop()
@@ -191,14 +224,27 @@ class ExpParser(ast.NodeVisitor):
             self.print_notsupported()
             
     def visit_Call(self, node):
+        
+        self.buf = ''
+        node.refrain = True
         self.visit(node.func)
+        node.refrain = False
+        
+        if self.identifiers.get(self.buf, 'func') == 'class':
+            self.print_('new ' + self.buf)
+        
+        self.print_(self.buf)
+            
         self.print_('(')
         first = True
+        
         for _ in node.args:
             if not first:
                 self.print_(', ')
             self.visit(_)
             first = False
+            
+            
         self.print_(')')
     
     def visit_Attribute(self, node):
@@ -236,6 +282,9 @@ class ExpParser(ast.NodeVisitor):
     
     def visit_Assign(self, node):
         self.print_indent()
+        
+        self.register_id(node.targets[0], 'var')
+            
         if len(node.targets) == 1:
             self.visit(node.targets[0])
             self.print_(' = ') 
@@ -246,6 +295,8 @@ class ExpParser(ast.NodeVisitor):
         self.print_indent()
         op = self.get_op(node.op)
         self.visit(node.target)
+        
+        self.register_id(node.target, 'var')
         
         if op in '+-' and type(node.value) is ast.Num and node.value.n == 1:
             self.print_(op * 2)
@@ -351,6 +402,11 @@ class ExpParser(ast.NodeVisitor):
         
     def visit_FunctionDef(self, node):
         self.print_indent()
+        
+        self.register_id(node, 'func')
+        
+        global_ids = dict(self.identifiers)
+        
         inclass = isinstance(node.parent, ast.ClassDef)
         fmt = 'funciton %s(%s) {' if not inclass else 'this.%s = function (%s) {'
         args = node.args.args
@@ -363,17 +419,32 @@ class ExpParser(ast.NodeVisitor):
             first_arg = args[0].arg
             args = args[1:]
         
-        self.print(fmt % (node.name, ', '.join([_.arg for _ in args])))
+        args = [_.arg for _ in args]
+        self.print(fmt % (node.name, ', '.join(args)))
         
         if inclass:
             self.print_indent()
             self.print('  var %s = this;' % first_arg)
         
-        for _ in node.body:
-            self.visit(_)
+        node.refrain = True
+        for _ in node.body: self.visit(_)
+        
+        defined = []
+        for _ in self.identifiers:
+            if self.identifiers[_] == 'var' and _ not in global_ids and _ not in args and _ != first_arg:
+                defined.append(_)
+        
+        node.refrain = False
+        if len(defined) > 0:
+            self.print_indent()
+            self.print('  var', ', '.join([_.split('.')[-1] for _ in defined]) + ';')
+        
+        for _ in node.body: self.visit(_)
         
         self.print_indent()
         self.print('}')
+        
+        self.identifiers = global_ids
         
     def visit_Return(self, node):
         self.print_indent()
@@ -384,16 +455,22 @@ class ExpParser(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         self.print_indent()
         
-        self.refrain = True
+        self.register_id(node, 'class')
+        
+        node.refrain = True
         for _ in node.body:
             self.visit(_)
-        self.refrain = False
+        node.refrain = False
         
         init_args = []
         if hasattr(node, 'members') and '__init__' in node.members:
             init_args = node.members['__init__']
 
-        self.print('function %s(%s) {' % (node.name, ', '.join([_.arg for _ in init_args[1:]])))
+        fmt = 'function %s(%s) {'
+        if isinstance(node.parent, ast.ClassDef):
+            fmt = 'this.%s = function (%s) {'
+
+        self.print(fmt % (node.name, ', '.join([_.arg for _ in init_args[1:]])))
         
         for _ in node.body:
             self.visit(_)
