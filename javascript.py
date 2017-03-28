@@ -368,7 +368,7 @@ class ExpParser(ast.NodeVisitor):
         
     def visit_Continue(self, node):
         self.print_indent()
-        self.print('break;')
+        self.print('continue;')
         
     def visit_Try(self, node):
         self.print_indent()
