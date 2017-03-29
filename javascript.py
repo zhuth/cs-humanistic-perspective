@@ -6,17 +6,13 @@ import sys
 class ExpParser(ast.NodeVisitor):
     for_count = 0
     context = [None]
-    buf = ''
-    
     identifiers = {}
     
     def print_(self, *args):
         s = ' '.join([str(_) for _ in args])
         for _ in self.context:
             if hasattr(_, 'refrain') and _.refrain:
-                self.buf += s
                 return
-        self.buf = ''
         sys.stdout.write(s)
         
     def print(self, *args):
@@ -35,7 +31,7 @@ class ExpParser(ast.NodeVisitor):
         self.visit(node)
         if bracket: self.print_(')')
         
-    def register_id(self, node, typ):
+    def get_id(self, node):
         def _id(n):
             if hasattr(n, 'id'): return n.id
             elif hasattr(n, 'name'): return n.name
@@ -45,10 +41,14 @@ class ExpParser(ast.NodeVisitor):
         while hasattr(node, 'parent') and node.parent:
             gid = _id(node.parent) + '.' + gid
             node = node.parent
-            
+        
+        return gid        
+        
+    def register_id(self, node, typ):
+        gid = self.get_id(node)
         self.identifiers[gid] = typ
         
-    ###
+    ### visit in general
     
     def visit(self, node):
         if not node:
@@ -212,16 +212,25 @@ class ExpParser(ast.NodeVisitor):
             self.print_notsupported()
             
     def visit_Call(self, node):
+        n = node.func
+        func = ''
         
-        self.buf = ''
-        node.refrain = True
-        self.visit(node.func)
-        node.refrain = False
-        
-        if self.identifiers.get(self.buf, 'func') == 'class':
-            self.print_('new ' + self.buf)
-        
-        self.print_(self.buf)
+        while True:
+            if isinstance(n, ast.Attribute):
+                if not func: func = n.attr
+                else: func = n.attr + '.' + func
+                n = n.value
+            elif isinstance(n, ast.Name):
+                func = n.id + ('.' + func if func else '')
+                break
+            else:
+                self.visit(n)
+                self.print_('.')
+                break
+                
+        if self.identifiers.get(func, 'func') == 'class':
+            self.print_('new ')
+        self.print_(func)
             
         self.print_('(')
         first = True
