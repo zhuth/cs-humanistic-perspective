@@ -3,9 +3,6 @@ import ast
 
 import sys
 
-class NotSupportedInJS(Exception):
-    pass
-    
 class ExpParser(ast.NodeVisitor):
     for_count = 0
     context = [None]
@@ -31,6 +28,12 @@ class ExpParser(ast.NodeVisitor):
         
     def print_notsupported(self):
         self.print_('/* Not Supported */')
+        
+    def print_ifbracket(self, node):
+        bracket = not type(node) in [ast.Num, ast.Str, ast.Bytes, ast.List, ast.Dict, ast.NameConstant, ast.Name, ast.Call]
+        if bracket: self.print_('(')
+        self.visit(node)
+        if bracket: self.print_(')')
         
     def register_id(self, node, typ):
         def _id(n):
@@ -166,37 +169,26 @@ class ExpParser(ast.NodeVisitor):
     def visit_UnaryOp(self, node):
         op = self.get_op(node.op)
         self.print_(op)
-
-        self.print_('(')
-        self.visit(node.operand)
-        self.print_(')')
+        self.print_ifbracket(node.operand)
     
     def visit_BinOp(self, node):
         op = self.get_op(node.op)
         if op == 'floordiv':
-            self.print_('Math.floor((')
-            self.visit(node.left)
-            self.print_(')/(')
-            self.visit(node.right)
-            self.print_('))')
+            self.print_('Math.floor(')
+            self.print_ifbracket(node.left)
+            self.print_('/')
+            self.print_ifbracket(node.right)
+            self.print_(')')
         else:
-            self.print_('(')
-            self.visit(node.left)
-            self.print_(')')
-            self.print_(op)
-            self.print_('(')
-            self.visit(node.right)
-            self.print_(')')
+            self.print_ifbracket(node.left)
+            self.print_('', op, '')
+            self.print_ifbracket(node.right)
             
     def visit_BoolOp(self, node):
         op = self.get_op(node.op)
-        self.print_('(')
-        self.visit(node.left)
-        self.print_(')')
-        self.print_(op)
-        self.print_('(')
-        self.visit(node.right)
-        self.print_(')')
+        self.print_ifbracket(node.values[0])
+        self.print_('', op, '')
+        self.print_ifbracket(node.values[1])
         
     def visit_Compare(self, node):
         if len(node.comparators) > 1:
@@ -204,13 +196,9 @@ class ExpParser(ast.NodeVisitor):
         
         op = self.get_op(node.ops[0])
         if op not in ['in', 'notin']:        
-            self.print_('(')
-            self.visit(node.left)
-            self.print_(')')
-            self.print_(op)
-            self.print_('(') 
-            self.visit(node.comparators[0])
-            self.print_(')')
+            self.print_ifbracket(node.left)
+            self.print_('', op, '')
+            self.print_ifbracket(node.comparators[0])
         else:
             # self.print_('(') 
             # self.visit(node.comparators[0])
@@ -255,13 +243,10 @@ class ExpParser(ast.NodeVisitor):
     def visit_IfExp(self, node):
         self.print_('(')
         self.visit(node.test)
-        self.print_(') ? (')
-        for _ in node.body if isinstance(node.body, list) else [node.body]:
-            self.visit(_)
-        self.print_(') : (')
-        for _ in node.orelse if isinstance(node.orelse, list) else [node.orelse]:
-            self.visit(_)
-        self.print_(')')
+        self.print_(') ? ')
+        self.print_ifbracket(node.body)
+        self.print_(' : ')
+        self.print_ifbracket(node.orelse)
         
     # subscripting
     
@@ -356,7 +341,7 @@ class ExpParser(ast.NodeVisitor):
     def visit_While(self, node):
         self.print_indent()
         self.print_('while (')
-        self.visit(self.test)
+        self.visit(node.test)
         self.print(') {')
         for _ in node.body:
             self.visit(_)
@@ -368,7 +353,7 @@ class ExpParser(ast.NodeVisitor):
         
     def visit_Continue(self, node):
         self.print_indent()
-        self.print('continue;')
+        self.print('break;')
         
     def visit_Try(self, node):
         self.print_indent()
@@ -410,6 +395,7 @@ class ExpParser(ast.NodeVisitor):
         inclass = isinstance(node.parent, ast.ClassDef)
         fmt = 'funciton %s(%s) {' if not inclass else 'this.%s = function (%s) {'
         args = node.args.args
+        first_arg = None
         
         if inclass: 
             self_arg = node.args.args[0].arg

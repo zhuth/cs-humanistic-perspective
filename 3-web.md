@@ -1,5 +1,3 @@
-> 说明：为正常显示本文中的数学公式，请使用 Chrome 浏览器并安装 [GitHub with MathJax](https://chrome.google.com/webstore/detail/github-with-mathjax/ioemnmodlmafdkllaclgeombjnmnbima/related) 插件。
-
 # 网络、数据库与网站架设
 
 - Flask
@@ -816,10 +814,102 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, ...{
 
 嗯，不着急，我们并不需要从头开始写。相反，更多专门的 CSS 包都有相关文档，告诉我们要显示什么效果该怎样配合使用 HTML 标签和 `class` 属性。这时候，善用 Chrome 的 Inspect Element 并在右侧修改一些 Style 属性就很重要了。当然，感兴趣的读者还可以进一步求索 w3schools 提供的 CSS 教程，这里就不叙述了。总之，有关网页“看上去怎么样”的定义，大多数时候就有赖于这些 CSS 文件。这样，我们一方面通过 HTML 和 Python 代码分离，实现网页布局与数据内容在服务器这边的分离；又通过 CSS 文件，实现网页内容和显示样式在浏览器（浏览者）那边的分离。这种分离使分工合作成为可能──它本身就是一种分工组织的方式。
 
-## 第四讲 多一点互动
+### JavaScript 的句法
 
+Flask 运行在服务器上，但我们不会希望所有的运算都让服务器独自承担。一方面这对服务器太苛刻了，另一方面，用户的浏览器不能闲着啊对不对？有一些操作也许我们希望不要刷新页面就能完成，有时候我们希望用户的操作能马上看到结果，而这些结果无需保存在服务器上。这时，我们就需要 JavaScript。它是运行在浏览器中的一种——也可以说是事实上唯一一种语言，如果我们要让浏览器中的网页做点事情，只能用它。
 
+正如本系列在最开始所说明的那样，重要的不是深入学习理解 Python 这种语言本身，而是用这门语言来了解世界的某些部分。在这里，我们就用 Python 来学习一下 JavaScript。
 
+（代码太长而且可能会有一些修改，所以请参见 [javascript.py](javascript.py)。）可以这样运行它：
 
-## 第五讲 在服务器上调用 API
+```shell
+> python3 javascript.py javascript.py
+...
+    var for_range80 = node.body;
+    for (var for_iter80 = 0; for_iter80 < for_range80.length; ++for_iter80) {
+      var _ = for_range80[for_iter80];
+      self.visit(_);
+    }
+    if (hasattr(node, "members") && (/* Not Supported */)) {
+      self.print_indent();
+      self.print("  this.__init__(%s);" % ", ".join(/* Not Supported: ListComp */
+/* Not Supported: comprehension */
+));
+    }
+    self.print_indent();
+    self.print("}");
+  }
+}
+if (__name__ == "__main__") {
+  py = open(sys.argv[1]).read();
+  node = ast.parse(py);
+  v = new ExpParser();
+  v.visit(node);
+```
 
+在这段代码中，我们使用了 Python 的抽象句法树（`ast`）。`node = ast.parse(py)` 这行代码把一段 Python 代码转换成 JavaScript 的句法，我们借此也可以看出在最一般的情况下 Python 句法与 JavaScript 句法的对应关系。当然，有一些 Python 语言的成分，比如连续的大小比较（`1 < x < 10`）、`for` 嵌入在一行中的写法 `[str(_) for _ in range(1, 10)]`、下标的切片（slice）写法（`a[1:10]`） 在 JavaScript 中并没有对应。这些都是 Python 所独有的。此外，我们这段简单的代码中也没有进行太多语义上的转换。譬如对于 `for` 语句而言，我们一而概之地将循环的对象作为一个列表看待。实际上，Python 的 `range` 函数是动态地产生它的数值的。而常用的写法 `for i in range(a, b)` 可以对应地写成 JavaScript 中的 `for (var i = a; i <= b; i++)` 。
+
+当然，没有相对应的句法，这不代表同样的事情 JavaScript 不能达到。实际上我们是用某种类似于“迂说法”的方式在缺乏类和继承关系的 JavaScript 中部分地实现了 Python 的类。另外一方面，JavaScript 在语义上还有一些“假朋友”（faux-amis）。譬如在上面显示出来的那部分代码中，Python 中可以用 `%` 运算符在字符串间进行操作，但这在 JavaScript 中是不可以的。但上面这些代码至少提供了一种形式。
+
+更多详细的关于 JavaScript 的说明请参考 w3schools。在 Chrome 的开发人员工具（也就是我们右键菜单选择“Inspect”所弹出的那个窗口）中，我们可以用下面的 Console 选项卡打开一个 JavaScript 控制台，在其中进行一些简单的练习。
+
+**练习**
+
+根据 `javascript.py`，说明如下事项：
+
+- JavaScript 中定义一个类的方式
+- JavaScript 中定义函数的两种写法
+- JavaScript 的 `for` 语句和 Python 的 `for` 有何区别
+- JavaScript 中创建一个类实例的方式
+
+注意，我们说 Python 是动态类型的语言，因为它每一个变量可以在运行的过程中改变所属的类，但是在某一时刻它必然有一个类型。因此如果 `x = '1'`，`x + 1` 会报错而我们只能写 `x + str(1)` 或 `int(x) + 1` 来得到字符串或整数。但在 JavaScript 中，类型在 `Object`、`Number` 和 `String` 之间可以自由变动，比如 `x = '1'` 而 `x + 1` 会返回 `'11'`（字符串），而 `+x` 会返回 `1`（数字）。这当然会导致混乱，所以最好的方式仍然是在写代码时想想明白类型。另外，JavaScript 也不区分浮点数和整数，因此注意到我们在实现 Python `\` 整除时使用了 `Math.floor()` 这个函数。
+
+JavaScript 也不支持函数参数的默认值和关键字参数。因此我们都没有在句法处理中做相应的实现。函数的参数默认按照顺序依次填充值，如果数量不符，多余的部分将可能被忽略，而缺少的参数则被填充为未定义 `undefined`。我们可以用这个方式来迂回地实现函数重载和参数默认值。
+
+JavaScript 中支持一个随运行时上下文而改变的特殊变量（其实是个关键字）即 `this`，因此不像 Python 那样需要在成员函数中定义一个 `self`。
+
+关于程序语言和抽象句法树，感兴趣的读者可以参考编译原理相关材料，而我们所实现的这个 `ExpParser` 类实际上正是在这样一棵树上做深搜。
+
+### DOM 与 jQuery
+
+DOM（文档对象模型）是在浏览器中使用 JavaScript 的真正用意所在：为了用程序方便地修改网页中显示的内容。我们已经在第一讲中看到，这个对象模型实际上就是各种 HTML 标签组成的一棵树。
+
+而 [jQuery](http://jquery.com/) 则可能是使用最广泛的一个运行在浏览器中的 JavaScript 包。它提供了访问文档对象，也就是网页中这些元素或标签的一种简单方式。我们可以在网页中这样引用它：
+
+```html
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" type="text/javascript"></script>
+```
+
+引用之后，在 Chrome 的开发人员工具中，当我们输入 `jQuery` 并回车就会出现：
+
+```
+> jQuery
+function ( selector, context ) {
+		// The jQuery object is actually just the init constructor 'enhanced'
+		// Need init if jQuery is called (just allow error to be thrown if not included)
+		return new…
+```
+
+而不是默认的 `undefined`。调用 jQuery 的方法非常简单，我们可以用 `$('a')` 来获取当前网页上所有的 `<a>` 标签即链接，而这里 `'a'` 可以替换成任何 CSS Selector。因此 `'a.link span'` 可以获得网页上所有 `class` 属性包含 `link` 的链接中的所有 `<span>` 标签。
+
+jQuery 的对象可以批量进行操作，如 `$('a').click()` 即模拟点击了全部链接，而 `$('a').css('font-size', '20px')` 则将所有链接的字号调整为 20 个像素高。`$('#prompt').show()` 和 `$('#prompt').hide()` 可以分别显示和隐藏 `id` 属性为 `prompt` 的网页元素。`$('input[name="id"]').val()` 可以获得（和设置，如果给定一个参数的话）`name` 为 `id` 的那个表单输入框的值。更多这方面的内容可以参考 jQuery 的教程。我们在此关心的是一种称为 Ajax 的技术，它允许我们在网页中不刷新页面而与服务器交互内容，例如，提交表单。
+
+用 jQuery 从浏览器发起一个 Ajax 的客户端请求的方式是这样的：
+
+```js
+$.get(url, function (data) {
+	...
+});
+$.post(url, form_data, function(data) {
+	...
+})
+```
+
+`get` 和 `post` 分别指定了是提交一个 GET 请求还是 POST 请求，而如果是 POST 请求，额外添加一个 `form_data` 的 `Object`（类似于 Python 的字典 `dict`）以指定信息。随后的函数决定了，如果请求成功，服务器返回的数据 `data` 的应当如何处理。（当然我们也可以不处理，而只是告诉用户提交成功。）JavaScript 的代码可以用 `<script>` 标签包起来放在 HTML 代码之中，也可以像我们引用 jQuery 一样，单独写成一个文件然后用 `src="{{ url_for('static', filename='...') }}"` 属性去指定路径。JavaScript 的后缀名是 `.js`。
+
+**练习**
+
+- 参照 w3schools 的教程，用 Chrome 的开发人员工具熟悉 JavaScript 和 jQuery。
+- 对于我们这个读书笔记的网站，将添加书目的表单放置在首页上，并用 jQuery 的 `$.post` 方法提交它。提示，可以用 `alert()` 函数给用户一个添加成功的提示，也可以用 `location.reload()` 来刷新页面。
+
+在下一讲中，我们将回到服务器端，来看看如何返回有意义的数据给浏览器上的 jQuery。
