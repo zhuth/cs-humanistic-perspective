@@ -58,19 +58,19 @@
 								<p>Etiam quis viverra lorem, in semper lorem. Sed nisl arcu euismod sit amet nisi euismod sed cursus arcu elementum ipsum arcu vivamus quis venenatis orci lorem ipsum et magna feugiat veroeros aliquam. Lorem ipsum dolor sit amet nullam dolore.</p>
 							</header>
 							<section class="tiles">
-								{% for _ in books %}
-								<article class="style{{ loop.index % 6 + 1 }}">
-									<span class="image">
-										<img src="{{ url_for('static', filename='images/pic01.jpg') }}" alt="" />
-									</span>
-									<a href="{{ url_for('list_annotations', book_id=_.id) }}">
-										<h2>{{ _.get('title') }}</h2>
-										<div class="content">
-											<p>作者：{{ _.get('author') }} 出版社：{{ _.get('publisher') }} 年份：{{ _.get('year')}}</p>
-										</div>
-									</a>
-								</article>
-								{% endfor %}
+								<template class="hidden">
+									<article class="style{style_num}">
+									    <span class="image">
+									        <img src="{pic}" alt="" />
+									    </span>
+									    <a href="{link}">
+									        <h2>{title}</h2>
+									        <div class="content">
+									            <p>作者：{author} 出版社：{publisher} 年份：{year}</p>
+									        </div>
+									    </a>
+									</article>
+								</template>	
 							</section>
 						</div>
 					</div>
@@ -122,6 +122,23 @@
 			<script src="{{ url_for('static', filename='js/util.js') }}"></script>
 			<!--[if lte IE 8]><script src="{{ url_for('static', filename='js/ie/respond.min.js') }}"></script><![endif]-->
 			<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+			<script type="text/javascript">
+				function update_list() {
+				var display = $('#main .tiles');
+				display.html('');
+				$.get('/books', function (data) {
+				data.books.forEach(function(e){
+				display.append(window.tmpl.replace(/{(.+?)}/g,
+				function(m, k) { return e[k]; } )
+				);
+				});
+				});
+				}
+				$(function() {
+				window.tmpl = $('template').html();
+				update_list();
+				});
 
+			</script>
 	</body>
 </html>

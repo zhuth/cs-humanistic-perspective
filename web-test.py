@@ -2,8 +2,10 @@
 
 #coding: utf-8
 from flask import Flask
-from flask import request, url_for, render_template
+from flask import request, url_for, render_template, jsonify, Response
 from pyhtml import *
+
+import requests
 
 app = Flask(__name__)
 
@@ -14,6 +16,9 @@ class Book(DBObject):
     author = ''
     publisher = ''
     year = 2000
+    isbn = ''
+    doubanid = ''
+    doubanpic = ''
     
 class Annotation(DBObject):
     book = ''
@@ -24,7 +29,36 @@ class Annotation(DBObject):
 
 @app.route('/')
 def index():
-    return render_template('index.html', books=Book().select())
+    return render_template('index.html')
+
+@app.route('/image_proc/<path:p>')
+def image_proc(p):
+    import requests
+    from PIL import Image, ImageOps
+    from io import BytesIO
+
+    if not p.startswith('http://') and not p.startswith('https://'): p = 'http://' + p
+    r = requests.get(p)
+    if r.status_code == 200:
+        img = Image.open(BytesIO(r.content))
+        buf = BytesIO()
+        ImageOps.autocontrast(img, 10).save(buf, 'jpeg')
+        return Response(buf.getvalue(), mimetype="image/jpeg")
+
+    return ''
+    
+@app.route('/books')
+def books():
+    books=[{
+        'style_num': (i % 6) + 1,
+        'link': url_for('list_annotations', book_id=_.id),
+        'pic': _.get('doubanpic'),
+        'title': _.get('title'),
+        'author': _.get('author'),
+        'publisher': _.get('publisher'),
+        'year': _.get('year')
+    } for i, _ in enumerate(Book().select())]
+    return jsonify({'books': books})
     
 @app.route('/add-book', methods=['GET'])
 def add_book_form():
@@ -34,7 +68,7 @@ def add_book_form():
             BODY(
                 FORM(action='', enctype='multipart/form-data', method='POST').append(
                     TABLE(
-                        [TR(TD(tip), TD(INPUT(type='text', name=name))) for tip, name in zip(['标题', '作者', '年份', '出版社'], ['title', 'author', 'year', 'publisher'])]
+                        [TR(TD(tip), TD(INPUT(type='text', name=name))) for tip, name in zip(['标题', '作者', '年份', '出版社', 'ISBN'], ['title', 'author', 'year', 'publisher', 'isbn'])]
                     ),
                     INPUT(type='submit', value='提交')
                 )
@@ -47,6 +81,14 @@ def add_book_deal():
     b = Book()
     for _ in request.form:
         b.set(_, request.form[_])
+    
+    isbn = b.get('isbn')
+    r = requests.get('https://api.douban.com/v2/book/isbn/' + isbn)
+    if r.status_code == 200: # 成功
+        db = r.json()
+        b.set('doubanid', db['id'])
+        b.set('doubanpic', db['images']['medium'])
+
     b.save()
     return '添加成功！'
     

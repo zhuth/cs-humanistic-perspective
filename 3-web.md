@@ -913,3 +913,275 @@ $.post(url, form_data, function(data) {
 - 对于我们这个读书笔记的网站，将添加书目的表单放置在首页上，并用 jQuery 的 `$.post` 方法提交它。提示，可以用 `alert()` 函数给用户一个添加成功的提示，也可以用 `location.reload()` 来刷新页面。
 
 在下一讲中，我们将回到服务器端，来看看如何返回有意义的数据给浏览器上的 jQuery。
+
+## 第四讲 Web Service 初步
+
+在上一讲中，我们已经看到了用 jQuery 可以与服务器交互，发起 `GET` 和 `POST` 请求。但我们还没有给出一个实例，这可能让练习平添了困难。但是，如果你有心搜索了一下现成的各种代码片段之后，应该至少在功能上实现了上次练习的要求。但是，这仍然不是一种很有效的和服务器互动的方式。我们仍然需要刷新页面才能看到刚刚提交上去的书目信息，这就违背了我们使用 Ajax 的初衷。因而在这一讲中，我们介绍服务器上如何方便地把数据传送给浏览器上的 jQuery，然后让它负责帮忙把这些数据显示出来。
+
+回到 `templates/index.html`，我们回忆上次是这样显示书目的：
+
+```html
+    {% for _ in books %}
+    <article class="style{{ loop.index % 6 + 1 }}">
+        <span class="image">
+            <img src="{{ url_for('static', filename='images/pic01.jpg') }}" alt="" />
+        </span>
+        <a href="{{ url_for('list_annotations', book_id=_.id) }}">
+            <h2>{{ _.get('title') }}</h2>
+            <div class="content">
+                <p>作者：{{ _.get('author') }} 出版社：{{ _.get('publisher') }} 年份：{{ _.get('year')}}</p>
+            </div>
+        </a>
+    </article>
+    {% endfor %}
+```
+
+现在，我们来把它改写成这样的形式：
+
+```html
+<template class="hidden">
+<article class="style{style_num}">
+    <span class="image">
+        <img src="{pic}" alt="" />
+    </span>
+    <a href="{link}">
+        <h2>{title}</h2>
+        <div class="content">
+            <p>作者：{author} 出版社：{publisher} 年份：{year}</p>
+        </div>
+    </a>
+</article>
+</template>
+{% endfor %}
+```
+
+再改写我们的 Python 代码：
+
+```python
+
+from Flask import ..., jsonify
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/books')
+def books():
+    books=[{
+        'style_num': (i % 6) + 1,
+        'link': url_for('list_annotations', book_id=_.id),
+        'pic': url_for('static', filename='images/pic01.jpg'),
+        'title': _.get('title'),
+        'author': _.get('author'),
+        'publisher': _.get('publisher'),
+        'year': _.get('year')
+    } for i, _ in enumerate(Book().select())]
+    return jsonify({'books': books})
+
+```
+
+我们将 `templates/index.html` 的结尾改写为：
+
+```html
+        <script type="text/javascript">
+        function update_list() {
+        	var display = $('#main .tiles');
+            display.html('');
+            $.get('/books', function (data) {
+            	data.books.forEach(function(e){
+                	display.append(window.tmpl.replace(/{(.+?)}/g,
+                    	function(m, k) { return e[k]; } )
+	                );
+                });
+            });
+        }
+        $(function() {
+            window.tmpl = $('template').html();
+            update_list();
+        });
+        </script>
+	</body>
+</html>
+```
+
+刷新页面，我们看到──好像没有什么变化嘛！
+
+那么上面这一圈折腾，又是做了什么呢？
+
+### 这个新首页的加载过程
+
+- 首先，浏览器向服务器请求 `/`，服务器实际上直接把 `templates/index.html` 给返回了。
+- 然后，浏览器执行页面上的 JavaScript，这里我们关心我们所加的这一段。
+	- 这一段可以分为两块。它先是定义了一个 `update_list` 函数，是用来向服务器请求书目数据然后显示出来的；然后是一条语句，它告诉 jQuery，当页面加载完成之后，执行里面这个作参数的函数。而在这个匿名函数之中，它将模板信息保存为一个全局变量 `tmpl`：注意，这里写成 `window.tmpl` 是为了显白地告诉大家，在 JavaScript 中，实际上任何没有以 `var` 定义过的变量（除了函数的参数）都会被视为是全局变量，而全局变量又都保存在 `window` 这个对象之中。
+	- 我们再来看 `update_list`。它获取到显示书目列表的那个 HTML 元素，也就是 `<section class="tiles" ...>...</section>`。它先将此中的 HTML 代码清空，然后，向服务器请求 `/books`，服务器返回的数据被交给 `function (data)` 这个匿名函数处理。
+- 服务器收到 `/books` 请求，将它交由 `books()` 函数处理，这个函数从数据库中读取书目信息，并将其转换为一个列表 `books`，这个 `books` 又被放在一个字典中，并通过 `jsonify()` 函数产生了一段表示它的数据，这种表示方法我们称之为  `JSON`（JavaScript Object Notation），它可以被 JavaScript 直接处理而无需额外步骤。
+	- 在这个匿名函数中，对 `data` 的 `books` 属性──`data` 对应于服务器上 Python 代码中的 `{'books': books}` 的这个字典）──逐一运行 `forEach` 中作为参数的那个匿名函数 `function(e)`。
+	- 在这又一个匿名函数中，我们向书目列表中追加（`append`）一段 HTML 代码，这段 HTML 代码是通过将 `tmpl` 中的一些东西做替换之后得到的。
+	- 要替换的是什么：`/{(.+?)}/g` 是 JavaScript 的正则表达式，其中斜杠后面的 `g` 是一个参数，表示“替换全部”（在我们的例子中，不加这个也无所谓；`{(.+?)}` 表示替换 `{}` 中任意长的字符串，并将这一组字符串单独出来。
+	- 替换成什么：匿名函数 `function (m, k)` 负责决定替换成什么，它的第一个参数 `m` 是先前那个正则表达式中匹配到的整个字符串，例如 `{title}`；而第二个参数 `k` 开始则是先前那个正则表达式所作的分组，在我们的例子中，也就是 `(.+?)` 所匹配到的 `title`。别忘了，我们这些代码是在遍历一个数组时运行的，正在被遍历到的那个元素作为参数 `e` 传递了进来，而它也是一个 JavaScript 的对象（也就是字典）。我们读取它名称为 `k` 的属性。
+
+（注意到，JavaScript 中的对象也就是字典，我们可以用两种方式来访问其中的元素。譬如 `data.books` 就把它当对象看待，而 `e[k]` 就当成了字典。其区别在于，`k` 是一个变量，我们是要用它的值；而 `books` 直接就是一个名称。）
+
+现在，当我们在原先需要刷新页面的地方，不是使用 `location.reload()` 而是使用这个 `update_list`，就会看到页面没有整体刷新，而只有书目的部分变化了。
+
+### 面向程序的网页
+
+我们之前的网页，面向的都是用户，我们考虑怎样将网页一次性地送到浏览者那里。而现在，我们发现有的网页是用来给人看的，另外一些则用来给程序看，再由客户端那里的程序决定怎么把它显示出来。在后一种情况下，我们实际上就开始制作某种最基本意义上的 Web Service（基于网页的服务）了。Web Service 实际上并不少见，大多数网站的 API（应用程序接口）都是以此而实现的。
+
+我们先前说过，我们需要书目的图片。然而图片从哪里来呢？手动添加，固然可以，但终究麻烦。有没有办法让它直接就能获取到往上，比如豆瓣，已经有的图片呢？
+
+好在豆瓣向我们开放了它的 API，因此我们可以比较方便地获取到豆瓣读书上的信息。我们来看看豆瓣是怎么说的：https://developers.douban.com/wiki/?title=guide
+
+在这个页面中，一上来正好就是我们所要的那个功能，获取书目信息。我们点击 [图书Api V2](https://developers.douban.com/wiki/?title=book_v2) ，继续看它的介绍。
+
+嗯，这个看起来有些麻烦……我们现在保存的书目信息只有标题、作者、出版社，这些东西虽然重要，但不太精确。相反，我们可以使用 ISBN 来精确地定位到一本书。好在我们现在并没有积累什么有用的数据，所以就对不住了各位测试数据，请你们告退一下，我们要重建数据库咯！
+
+**练习**
+
+删除 my.db 文件，修改 `Book` 这个类，增加两个字段，分别用来保存 ISBN 和豆瓣书目 ID 与图片网址（如有）的信息。请将它们都当作字符串。
+
+修改好的 `Book` 如下所示：
+
+```python
+class Book(DBObject):
+    title = ''
+    author = ''
+    publisher = ''
+    year = 2000
+    isbn = ''
+    doubanid = ''
+    doubanpic = ''
+```
+
+**练习**
+
+相应地，修改添加书目的表单，增加一个填写 ISBN 的文本框。
+
+现在我们来改写处理添加书目的 `add_book_deal` 函数。我们要调用豆瓣 API 来根据 ISBN 信息获取到它的豆瓣书目 ID 和图片信息了！
+
+```python
+@app.route('/add-book', methods=['POST'])
+def add_book_deal():
+    import requests
+    b = Book()
+    for _ in request.form:
+        b.set(_, request.form[_])
+    
+    isbn = b.get('isbn')
+    r = requests.get('https://api.douban.com/v2/book/isbn/' + isbn)
+    if r.status_code == 200: # 成功
+        db = r.json()
+        b.set('doubanid', db['id'])
+        b.set('doubanpic', db['images']['medium'])
+
+    b.save()
+    return '添加成功！'
+```
+
+那么，现在我们就可以相应地修改 `books` 函数，让它的返回的 `pic` 包含真实的图片网址了：
+
+```python
+@app.route('/books')
+def books():
+    books=[{
+        'style_num': (i % 6) + 1,
+        'link': url_for('list_annotations', book_id=_.id),
+        'pic': _.get('doubanpic'),
+        'title': _.get('title'),
+        'author': _.get('author'),
+        'publisher': _.get('publisher'),
+        'year': _.get('year')
+    } for i, _ in enumerate(Book().select())]
+    return jsonify({'books': books})
+```
+
+重新打开浏览器，添加书目信息，填上 ISBN 号，不刷新，页面中就出现了一条书目的信息，还带封面图片，完美！
+
+**练习**
+
+- 阅读豆瓣 API 说明，使用户只需填写 ISBN，就可以自动补全作者、书名等信息。下列代码供参考（请注意，并非基于 Flask 框架、requests 和我们的 dao.py，因此处理时有所不同）：
+
+```python
+j = curl('https://api.douban.com/v2/book/%s' % book_id)
+j = json.loads(j)
+c.execute("INSERT INTO book VALUES(?, ?, ?, ?, ?, ?)", (book_id, ', '.join(j['author']), j['title'], ', '.join(j['translator']), j['publisher'], j['pubdate'][:4]))
+```
+
+- 提交表单前检验用户是否正确输入了 ISBN，若有，则将豆瓣上获取的信息先填充进表单中（使用 jQuery），待用户确认后再提交。注意，由于豆瓣服务器和你的浏览器的安全性设置，不可直接调用 `$.get('https://api.douban.com/...')`。
+
+近几次练习难度较高，请善加利用 w3schools、StackOverflow 等网站。国内一些技术博客和网站（如 CSDN）亦可多加参考。
+
+### 更加高级的 Web Service ……
+
+事实上，Web Service 并不是只能提供一些文本信息。我们还可以让它来完成一些，比如，图片操作！
+
+下面的代码演示了如何从给定的网址下载图片，增强它的对比度，然后返回输出：
+
+```python
+from Flask import Response
+
+@app.route('/image_proc/<path:p>') # Flask 中，path:p 表示这个参数 p 可以是一个路径，也就是说，包含斜杠；不用 path: 前缀则我们无法完整地传递一个网址
+def image_proc(p):
+    import requests
+    from PIL import Image, ImageOps # 需要安装 pillow 库
+    from io import BytesIO
+
+    if not p.startswith('http://') and not p.startswith('https://'): p = 'http://' + p
+    r = requests.get(p)
+    if r.status_code == 200:
+        img = Image.open(BytesIO(r.content))
+        ImageOps.autocontrast(img, 10).save(buf, 'jpeg')
+        return Response(buf.getvalue(), mimetype="image/jpeg")
+
+    return ''
+```
+
+我们使用标准的 Lena 图片，来看看效果：http://localhost:5000/image_proc/http://www.cs.cmu.edu/~chuck/lennapg/len_std.jpg
+原图：http://www.cs.cmu.edu/~chuck/lennapg/len_std.jpg
+
+#### 能不能再高级点？
+
+Flask 的用途很多。下面我们举几个例子。
+
+- 这个博客描述了怎样用 Flask 搭建一个简易的视频监控页面：http://blog.miguelgrinberg.com/post/video-streaming-with-flask （GitHub：https://github.com/miguelgrinberg/flask-video-streaming ）
+- 这个 GitHub 库列举了厉害的 Flask 相关资源：https://github.com/humiaozuzu/awesome-flask
+- 尤其是这个视频介绍了 RESTful Web Service：http://pyvideo.org/pycon-us-2014/writing-restful-web-services-with-flask.html
+
+### 部署 Flask 制作的网站到服务器上
+
+> 以下内容适用于 Linux。
+
+至今我们都是在使用 Flask 的测试服务器。然而一旦我们昨晚了网站真的要给别人去用，就需要在服务器上做点工作了。考虑到无论何种供应商， Linux 服务器方便实惠，在此就只简略介绍在 Linux 服务器上部署 Flask 框架制作的网站的大致步骤。
+
+1. 安装 Apache2──一般都会默认安装好
+2. 安装 `libapache2-mod-wsgi` 并启用：`sudo a2enmod wsgi`
+3. 将网站上传到服务器上（如 `/var/www/mysite`），设置好权限：`chown -R www-data:www-data .`
+4. 配置 Apache 服务器，以下配置供参考
+```
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName www.example.com
+    WSGIDaemonProcess mysite user=www-data group=www-data threads=5 home=/var/www/mysite/
+    WSGIScriptAlias / /var/www/mysite/mysite.wsgi
+    WSGIPassAuthorization On
+    DocumentRoot /var/www/mysite/
+    Alias /static /var/www/mysite/static
+    LogLevel info
+    <Directory /var/www/mysite/ >
+    WSGIProcessGroup mysite
+    WSGIApplicationGroup %{GLOBAL}
+            Options Indexes FollowSymLinks MultiViews
+            AllowOverride All
+            Order allow,deny
+            Allow from all
+    </Directory>
+
+    ErrorLog /var/log/apache2/error_wp.log
+    CustomLog /var/log/apache2/access_wp.log combined
+</VirtualHost>
+```
+编写 `/var/www/mysite/mysite.wsgi`，内容如下：
+```
+from app import app as application
+```
+
