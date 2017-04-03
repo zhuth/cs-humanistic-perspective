@@ -11,12 +11,12 @@ Computer Science in a Humanistic Perspective: A Brief Introduction (in Chinese)
 
 *You may take this "copyright" as a permission to redistribute any part or the whole of this work so long as you keep this copyright claim and a link to the [current repository on GitHub](https://github.com/zhuth/cs-humanistic-perspective/) in your redistribution.*
 
-## 目录 Contents
+## 目录
 
-[第一部分 作为一种人类语言的 Python 导论  I. Introduction to Python as a Language for Human Beings](1-python.md)
+[第一部分 作为一种人类语言的 Python 导论](1-python.md)
 
-[第二部分 数据结构与算法分析 II. Data Structure and Algorithm](2-algo.md)
+[第二部分 数据结构与算法分析](2-algo.md)
 
 [第三部分 Flask 网络与通信](3-web.md)
 
-[第四部分 NumPy、OpenCV 与 PyTorch]()
+[第四部分 机器学习，人类学习](4-mlearning.md)

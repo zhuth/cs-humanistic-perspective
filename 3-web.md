@@ -1157,6 +1157,7 @@ Flask 的用途很多。下面我们举几个例子。
 2. 安装 `libapache2-mod-wsgi` 并启用：`sudo a2enmod wsgi`
 3. 将网站上传到服务器上（如 `/var/www/mysite`），设置好权限：`chown -R www-data:www-data .`
 4. 配置 Apache 服务器，以下配置供参考
+
 ```
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
@@ -1180,7 +1181,12 @@ Flask 的用途很多。下面我们举几个例子。
     CustomLog /var/log/apache2/access_wp.log combined
 </VirtualHost>
 ```
+
 编写 `/var/www/mysite/mysite.wsgi`，内容如下：
 ```
 from app import app as application
 ```
+
+至此，我们的网站旅程就告一段落了。下一部分，我们将开始期待已久的——炼丹之路。
+
+[第二部分](2-algo.md) [第四部分](4-mlearning.md)

@@ -968,4 +968,4 @@ lst = [_ for _ in some_iterating_function()]
 最后，Happy Python-ing!
 
 
-[第二部分 数据结构与算法分析](2-algo.md)
+[第二部分：数据结构与算法分析](2-algo.md)
