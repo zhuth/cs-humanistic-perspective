@@ -1,11 +1,11 @@
 # 网络、数据库与网站架设
 
-- Flask
-    - 网络基本知识
-    - HTML
-    - CSS/JavaScript 基础
-- MySQL
-- Django 介绍
+## 目标
+
+- 网络基本知识
+- HTML
+- CSS/JavaScript 基础
+- API 调用
 
 ## 第一讲 第一个网页
 
@@ -1184,4 +1184,3 @@ Flask 的用途很多。下面我们举几个例子。
 ```
 from app import app as application
 ```
-
