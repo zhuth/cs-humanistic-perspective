@@ -955,13 +955,10 @@ txts = []
 for _ in files:
     if _.endswith('.txt'): txts.append(_[:_.rfind('.')])
 ```
-当然，`if` 是可选的，只有有必要的时候才用加上。
-有时也会出现这样的语句：
+当然，`if` 是可选的，只有有必要的时候才用加上，例如：
 ```python
-lst = [_ for _ in some_iterating_function()]
+lst = [repr(_) for _ in some_iterating_function()]
 ```
-
-乍看之下没有什么必要。它的作用是把一个可以枚举（用在 `for` 语句中）的东西强制转换为 `list` 类型。因此就特别适用于查询数据库的时候。不过，其实 `sqlite3.Cursor` 为我们提供了一个方法，就是 `fetchall` 。`cur.fetchall()` 等价于 `[_ for _ in cur.execute(sql)]`
 
 至此，Python 导论篇就要告一段落了。欢迎大家继续提供意见和建议，会在将来的推送中补充遗漏而重要的知识点。此外，之后几篇可能按照大家的建议来写一些基本的算法和离散数学的内容。In Python if possible, of course.
 
